@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global dark mode text fixes */
+@layer base {
+  .dark {
+    color-scheme: dark;
+  }
+  
+  /* Automatic dark mode text fixes */
+  .dark .text-gray-900:not(.dark\:text-white) {
+    color: rgb(255 255 255) !important;
+  }
+  
+  .dark .text-gray-800:not(.dark\:text-gray-200) {
+    color: rgb(229 231 235) !important;
+  }
+  
+  .dark .text-gray-700:not(.dark\:text-gray-300) {
+    color: rgb(209 213 219) !important;
+  }
+  
+  /* Text color utilities for dark mode */
+  .text-primary {
+    @apply text-gray-900 dark:text-white;
+  }
+  
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  
+  .text-muted {
+    @apply text-gray-500 dark:text-gray-500;
+  }
+}
+
+/* Custom CSS */
+.card {
+  @apply bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-6;
+}
+
+.btn-primary {
+  @apply bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2.5 px-6 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+.form-input {
+  @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.table-header {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-800;
+}
+
+.table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white;
+}
+
+.stats-card {
+  @apply bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow duration-200;
+}
+
+/* Login page styles */
+.login-container {
+  @apply min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900;
+}
+
+.login-card {
+  @apply bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 p-8;
+} 

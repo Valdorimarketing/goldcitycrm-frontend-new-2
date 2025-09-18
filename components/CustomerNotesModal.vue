@@ -1,0 +1,440 @@
+<template>
+  <Teleport to="body">
+    <Transition
+      enter-active-class="duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="duration-200 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div v-if="show" class="fixed inset-0 z-50 overflow-y-auto">
+        <!-- Backdrop -->
+        <div 
+          class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/80 backdrop-blur-sm transition-opacity" 
+          @click="$emit('close')"
+        ></div>
+        
+        <!-- Modal -->
+        <div class="flex min-h-screen items-center justify-center p-4">
+          <Transition
+            enter-active-class="duration-300 ease-out"
+            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+            leave-active-class="duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <div v-if="show" class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-2xl transition-all sm:w-full sm:max-w-4xl">
+              <!-- Header -->
+              <div class="bg-gradient-to-r from-amber-600 to-orange-600 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+                      <DocumentTextIcon class="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-white">Müşteri Notları</h3>
+                      <p class="text-sm text-amber-100">{{ customer?.name }} {{ customer?.surname }}</p>
+                    </div>
+                  </div>
+                  <button
+                    @click="$emit('close')"
+                    class="rounded-lg p-2 hover:bg-white/20 transition-colors"
+                  >
+                    <XMarkIcon class="h-5 w-5 text-white" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add Note Section -->
+              <div class="border-b dark:border-gray-700 p-4">
+                <div class="flex items-start space-x-3">
+                  <div class="flex-1">
+                    <textarea
+                      v-model="newNote.note"
+                      rows="3"
+                      class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-amber-600 dark:bg-gray-700 transition-all"
+                      placeholder="Yeni not ekle..."
+                    ></textarea>
+                    
+                    <!-- Reminder Option -->
+                    <div class="mt-3 flex items-center justify-between">
+                      <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                          <input
+                            v-model="newNote.isReminding"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-600"
+                          />
+                          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            <BellIcon class="inline h-4 w-4 mr-1" />
+                            Hatırlatıcı ekle
+                          </span>
+                        </label>
+                        
+                        <Transition
+                          enter-active-class="duration-200 ease-out"
+                          enter-from-class="opacity-0 scale-95"
+                          enter-to-class="opacity-100 scale-100"
+                          leave-active-class="duration-100 ease-in"
+                          leave-from-class="opacity-100 scale-100"
+                          leave-to-class="opacity-0 scale-95"
+                        >
+                          <input
+                            v-if="newNote.isReminding"
+                            v-model="newNote.remindingAt"
+                            type="datetime-local"
+                            class="rounded-lg border-0 px-3 py-1.5 text-sm text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-amber-600 dark:bg-gray-700"
+                          />
+                        </Transition>
+                      </div>
+                      
+                      <button
+                        @click="addNote"
+                        :disabled="!newNote.note.trim() || addingNote"
+                        class="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <PlusIcon class="mr-2 h-4 w-4" />
+                        {{ addingNote ? 'Ekleniyor...' : 'Not Ekle' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="max-h-[50vh] overflow-y-auto p-6">
+                <!-- Loading State -->
+                <div v-if="loading" class="flex justify-center py-8">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                </div>
+
+                <!-- Notes List -->
+                <div v-else-if="notes.length > 0" class="space-y-4">
+                  <div 
+                    v-for="note in notes" 
+                    :key="note.id"
+                    class="group relative bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 hover:shadow-md transition-all"
+                  >
+                    <!-- Note Header -->
+                    <div class="flex items-start justify-between mb-2">
+                      <div class="flex items-center space-x-2">
+                        <UserIcon class="h-4 w-4 text-gray-400" />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {{ note.userInfo?.name || 'Sistem' }}
+                        </span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                          • {{ formatDate(note.createdAt) }}
+                        </span>
+                      </div>
+                      
+                      <!-- Actions -->
+                      <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          @click="editNote(note)"
+                          class="text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                          title="Düzenle"
+                        >
+                          <PencilIcon class="h-4 w-4" />
+                        </button>
+                        <button
+                          @click="deleteNote(note)"
+                          class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          title="Sil"
+                        >
+                          <TrashIcon class="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Note Content -->
+                    <div v-if="editingNote?.id === note.id" class="space-y-3">
+                      <textarea
+                        v-model="editingNote.note"
+                        rows="3"
+                        class="block w-full rounded-lg border-0 px-3 py-2 text-sm text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-amber-600 dark:bg-gray-600"
+                      ></textarea>
+                      <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                          <input
+                            v-model="editingNote.isReminding"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-600"
+                          />
+                          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Hatırlatıcı</span>
+                        </label>
+                        <div class="flex items-center space-x-2">
+                          <button
+                            @click="cancelEdit"
+                            class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          >
+                            İptal
+                          </button>
+                          <button
+                            @click="saveEdit"
+                            class="text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                          >
+                            Kaydet
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else>
+                      <p class="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ note.note }}</p>
+                      
+                      <!-- Reminder Badge -->
+                      <div v-if="note.isReminding" class="mt-3 inline-flex items-center space-x-2">
+                        <span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-xs font-medium text-amber-800 dark:text-amber-300">
+                          <BellIcon class="mr-1.5 h-3.5 w-3.5" />
+                          Hatırlatma: {{ formatDateTime(note.remindingAt) }}
+                        </span>
+                        <span 
+                          v-if="isOverdue(note.remindingAt)"
+                          class="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-300"
+                        >
+                          Gecikmiş
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else class="text-center py-8">
+                  <DocumentTextIcon class="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Not Bulunamadı</h3>
+                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Bu müşteri için henüz not eklenmemiş.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="border-t dark:border-gray-700 px-6 py-4">
+                <div class="flex justify-between items-center">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Toplam <span class="font-medium">{{ notes.length }}</span> not
+                    <span v-if="reminderCount > 0" class="ml-2">
+                      • <span class="font-medium text-amber-600 dark:text-amber-400">{{ reminderCount }}</span> hatırlatıcı
+                    </span>
+                  </p>
+                  <button
+                    @click="$emit('close')"
+                    class="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Kapat
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<script setup>
+import { 
+  XMarkIcon, 
+  DocumentTextIcon,
+  UserIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  BellIcon
+} from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  show: Boolean,
+  customer: Object
+})
+
+const emit = defineEmits(['close'])
+
+// Stores
+const customerNotesStore = useCustomerNotesStore()
+const authStore = useAuthStore()
+
+// State
+const loading = ref(false)
+const notes = ref([])
+const addingNote = ref(false)
+const editingNote = ref(null)
+
+// New note form
+const newNote = reactive({
+  note: '',
+  isReminding: false,
+  remindingAt: ''
+})
+
+// Computed
+const reminderCount = computed(() => {
+  return notes.value.filter(n => n.isReminding).length
+})
+
+// Fetch customer notes
+const fetchNotes = async () => {
+  if (!props.customer?.id) return
+  
+  loading.value = true
+  try {
+    await customerNotesStore.fetchCustomerNotes(1, 100, {
+      customer: props.customer.id
+    })
+    
+    notes.value = customerNotesStore.customerNotes
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  } catch (error) {
+    console.error('Error fetching customer notes:', error)
+    notes.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// Add new note
+const addNote = async () => {
+  if (!newNote.note.trim() || !props.customer?.id) return
+  
+  addingNote.value = true
+  try {
+    const noteData = {
+      customer: props.customer.id,
+      user: authStore.user?.id,
+      note: newNote.note.trim(),
+      isReminding: newNote.isReminding,
+      remindingAt: newNote.isReminding && newNote.remindingAt ? newNote.remindingAt : undefined
+    }
+    
+    await customerNotesStore.createCustomerNote(noteData)
+    
+    // Reset form
+    newNote.note = ''
+    newNote.isReminding = false
+    newNote.remindingAt = ''
+    
+    // Refresh notes
+    await fetchNotes()
+  } catch (error) {
+    console.error('Error adding note:', error)
+  } finally {
+    addingNote.value = false
+  }
+}
+
+// Edit note
+const editNote = (note) => {
+  editingNote.value = { ...note }
+}
+
+// Cancel edit
+const cancelEdit = () => {
+  editingNote.value = null
+}
+
+// Save edit
+const saveEdit = async () => {
+  if (!editingNote.value) return
+  
+  try {
+    await customerNotesStore.updateCustomerNote(editingNote.value.id, {
+      note: editingNote.value.note,
+      isReminding: editingNote.value.isReminding,
+      remindingAt: editingNote.value.isReminding && editingNote.value.remindingAt ? editingNote.value.remindingAt : undefined
+    })
+    
+    // Refresh notes
+    await fetchNotes()
+    editingNote.value = null
+  } catch (error) {
+    console.error('Error updating note:', error)
+  }
+}
+
+// Delete note
+const deleteNote = async (note) => {
+  if (!confirm('Bu notu silmek istediğinizden emin misiniz?')) return
+  
+  try {
+    await customerNotesStore.deleteCustomerNote(note.id)
+    
+    // Refresh notes
+    await fetchNotes()
+  } catch (error) {
+    console.error('Error deleting note:', error)
+  }
+}
+
+// Check if reminder is overdue
+const isOverdue = (dateString) => {
+  if (!dateString) return false
+  return new Date(dateString) < new Date()
+}
+
+// Format date
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now - date
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  
+  if (days === 0) {
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours === 0) {
+      const minutes = Math.floor(diff / (1000 * 60))
+      if (minutes === 0) return 'Az önce'
+      return `${minutes} dakika önce`
+    }
+    return `${hours} saat önce`
+  } else if (days === 1) {
+    return 'Dün'
+  } else if (days < 7) {
+    return `${days} gün önce`
+  } else {
+    return date.toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+}
+
+// Format date time
+const formatDateTime = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleString('tr-TR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Set default reminder date to tomorrow at 9 AM
+watch(() => newNote.isReminding, (value) => {
+  if (value && !newNote.remindingAt) {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(9, 0, 0, 0)
+    newNote.remindingAt = tomorrow.toISOString().slice(0, 16)
+  }
+})
+
+// Watch for modal open
+watch(() => props.show, (newValue) => {
+  if (newValue) {
+    fetchNotes()
+  } else {
+    notes.value = []
+    newNote.note = ''
+    newNote.isReminding = false
+    newNote.remindingAt = ''
+    editingNote.value = null
+  }
+})
+</script>
