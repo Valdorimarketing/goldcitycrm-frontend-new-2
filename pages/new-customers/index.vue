@@ -627,8 +627,6 @@ const assignSelectedCustomers = async () => {
     selectedCustomers.value = []
     selectedUser.value = null
     userSearch.value = ''
-
-    console.log('Customers assigned successfully')
   } catch (error) {
     console.error('Error assigning customers:', error)
   }
@@ -666,7 +664,6 @@ const showDoctorAssignment = (customer) => {
 }
 
 const handleDoctorAssigned = (assignment) => {
-  console.log('Doctor assigned:', assignment)
   // Optionally refresh customer data or show success message
 }
 
@@ -676,7 +673,6 @@ const showServices = (customer) => {
 }
 
 const handleServicesSaved = () => {
-  console.log('Services saved successfully')
   showServicesModal.value = false
 }
 
@@ -700,10 +696,8 @@ const handleDelete = async () => {
       await api(`/customers/${customerId}`, {
         method: 'DELETE'
       })
-
-      console.log('Customer deleted successfully')
     } catch (error) {
-      console.error('Error deleting customer (using demo mode):', error)
+      console.error('Error deleting customer:', error)
       // Customer is already removed from local state, so no need to revert
     }
   }
@@ -713,7 +707,6 @@ const handleDelete = async () => {
 
 // Handle customer creation
 const handleCustomerCreated = (customer) => {
-  console.log('New customer created:', customer)
   // Add to beginning of customers list for immediate visibility
   customersData.value.unshift({
     ...customer,
@@ -764,12 +757,10 @@ onMounted(async () => {
   try {
     const api = useApi()
     const { getCustomerFilters, canAccessCustomer } = usePermissions()
-    console.log('Loading statuses, users and customers...')
 
     // Load users
     try {
       const usersResponse = await api('/users')
-      console.log('Users loaded:', usersResponse)
       if (Array.isArray(usersResponse)) {
         users.value = usersResponse
         // Create users map
@@ -784,7 +775,6 @@ onMounted(async () => {
     // Load statuses first
     try {
       const statusResponse = await api('/statuses')
-      console.log('Statuses loaded:', statusResponse)
 
       if (Array.isArray(statusResponse)) {
         // Create status map for quick lookup
@@ -806,10 +796,7 @@ onMounted(async () => {
 
     // Load customers with role-based filters
     const filters = getCustomerFilters()
-    console.log('Applying role-based filters:', filters)
     const response = await api('/customers', { query: filters })
-
-    console.log('Customers loaded:', response)
     if (Array.isArray(response)) {
       // Filter customers to only show those with is_new status
       const allCustomers = response.map(customer => {
