@@ -26,6 +26,60 @@
       </div>
     </div>
 
+    <!-- Search and Filters -->
+    <div class="card mb-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Ara
+          </label>
+          <input
+            id="search"
+            v-model="searchTerm"
+            type="text"
+            class="form-input"
+            placeholder="Mesaj içeriğinde ara..."
+          />
+        </div>
+        <div>
+          <label for="readStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Okunma Durumu
+          </label>
+          <select
+            id="readStatus"
+            v-model="readFilter"
+            class="form-input"
+          >
+            <option :value="undefined">Tümü</option>
+            <option :value="false">Okunmamış</option>
+            <option :value="true">Okunmuş</option>
+          </select>
+        </div>
+        <div>
+          <label for="checkedStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Kontrol Durumu
+          </label>
+          <select
+            id="checkedStatus"
+            v-model="checkedFilter"
+            class="form-input"
+          >
+            <option :value="undefined">Tümü</option>
+            <option :value="false">Kontrol Edilmemiş</option>
+            <option :value="true">Kontrol Edildi</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button
+            @click="resetFilters"
+            class="btn-secondary w-full"
+          >
+            Filtreleri Temizle
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
       <div class="card">
@@ -39,13 +93,13 @@
                 Toplam Alert
               </dt>
               <dd class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ totalAlerts }}
+                {{ meta?.total || 0 }}
               </dd>
             </dl>
           </div>
         </div>
       </div>
-      
+
       <div class="card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -57,13 +111,13 @@
                 Okunmamış
               </dt>
               <dd class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ unreadCount }}
+                {{ unreadCount || 0 }}
               </dd>
             </dl>
           </div>
         </div>
       </div>
-      
+
       <div class="card">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -72,10 +126,10 @@
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                Kontrol Edildi
+                Kontrol Edilmemiş
               </dt>
               <dd class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ checkedCount }}
+                {{ uncheckedCount || 0 }}
               </dd>
             </dl>
           </div>
@@ -94,15 +148,15 @@
           <span class="ml-2 text-gray-500">Yükleniyor...</span>
         </div>
       </div>
-      
+
       <div v-else-if="alerts.length === 0" class="px-4 py-12 text-center">
         <CheckCircleIcon class="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Fraud alert bulunamadı</h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Henüz sistem tarafından tespit edilmiş bir dolandırıcılık uyarısı yok.
+          {{ searchTerm || readFilter !== undefined || checkedFilter !== undefined ? 'Arama kriterlerinize uygun fraud alert bulunamadı.' : 'Henüz sistem tarafından tespit edilmiş bir dolandırıcılık uyarısı yok.' }}
         </p>
       </div>
-      
+
       <ul v-else class="divide-y divide-gray-200 dark:divide-gray-700">
         <li
           v-for="alert in alerts"
@@ -177,6 +231,71 @@
           </div>
         </li>
       </ul>
+
+      <!-- Pagination -->
+      <div v-if="meta && meta.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+        <div class="flex flex-1 justify-between sm:hidden">
+          <button
+            :disabled="meta.page === 1"
+            @click="changePage(meta.page - 1)"
+            class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            Önceki
+          </button>
+          <button
+            :disabled="meta.page === meta.totalPages"
+            @click="changePage(meta.page + 1)"
+            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+          >
+            Sonraki
+          </button>
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <span class="font-medium">{{ ((meta.page - 1) * meta.limit) + 1 }}</span>
+              -
+              <span class="font-medium">{{ Math.min(meta.page * meta.limit, meta.total) }}</span>
+              arası, toplam
+              <span class="font-medium">{{ meta.total }}</span>
+              sonuç
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+              <button
+                :disabled="meta.page === 1"
+                @click="changePage(meta.page - 1)"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                <ChevronLeftIcon class="h-5 w-5" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="changePage(page)"
+                :class="[
+                  page === meta.page
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
+                  'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
+                ]"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                :disabled="meta.page === meta.totalPages"
+                @click="changePage(meta.page + 1)"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                <ChevronRightIcon class="h-5 w-5" />
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -189,60 +308,109 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
   EyeIcon,
-  CheckIcon
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/vue/24/outline'
 import { useFraudAlerts } from '~/composables/useFraudAlerts'
+import { watchDebounced } from '@vueuse/core'
 
 const {
   alerts,
   unreadCount,
+  uncheckedCount,
   loading,
-  getRecentAlerts,
+  meta,
+  fetchAlerts,
   getUnreadCount,
+  getUncheckedCount,
   markAsRead,
-  markAsChecked,
-  formatRelativeTime
+  markAsChecked
 } = useFraudAlerts()
 
+// Search and filters
+const searchTerm = ref('')
+const readFilter = ref(undefined)
+const checkedFilter = ref(undefined)
+
 // Computed
-const totalAlerts = computed(() => alerts.value.length)
-const checkedCount = computed(() => alerts.value.filter(a => a.isChecked).length)
+const visiblePages = computed(() => {
+  const pages = []
+  const total = meta.value?.totalPages || 0
+  const current = meta.value?.page || 1
+
+  // Guard against invalid values
+  if (!total || total <= 0) return []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total)
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
+    }
+  }
+
+  return pages.filter(page => page !== '...')
+})
 
 // Methods
-const refreshAlerts = async () => {
-  loading.value = true
-  await loadAllAlerts()
-  await getUnreadCount()
-  loading.value = false
+const loadAlerts = async (page = 1) => {
+  await fetchAlerts({
+    page,
+    search: searchTerm.value || undefined,
+    isRead: readFilter.value,
+    isChecked: checkedFilter.value
+  })
 }
 
-const loadAllAlerts = async () => {
-  try {
-    const api = useApi()
-    const response = await api('/fraud-alerts', {
-      params: {
-        include: 'user'
-      }
-    })
-    alerts.value = response
-  } catch (error) {
-    console.error('Error loading alerts:', error)
+const refreshAlerts = async () => {
+  await loadAlerts(meta.value.page)
+  await getUnreadCount()
+  await getUncheckedCount()
+}
+
+const resetFilters = () => {
+  searchTerm.value = ''
+  readFilter.value = undefined
+  checkedFilter.value = undefined
+}
+
+const changePage = (page) => {
+  if (page >= 1 && page <= meta.value.totalPages) {
+    loadAlerts(page)
   }
 }
 
+// Watch for search term and filter changes with debounce
+watchDebounced(
+  [searchTerm, readFilter, checkedFilter],
+  () => {
+    loadAlerts(1) // Reset to page 1 when searching or filtering
+  },
+  { debounce: 500 }
+)
+
 const markAllAsRead = async () => {
-  loading.value = true
+  if (loading.value) return // Prevent double-click
+
   try {
     // Mark all unread alerts as read
     const unreadAlerts = alerts.value.filter(a => !a.isRead)
+    if (unreadAlerts.length === 0) return
+
     await Promise.all(unreadAlerts.map(alert => markAsRead(alert.id)))
-    
+
     // Refresh the list
     await refreshAlerts()
   } catch (error) {
     console.error('Error marking all as read:', error)
   }
-  loading.value = false
 }
 
 const markAsReadAction = async (alert) => {
@@ -256,6 +424,7 @@ const markAsCheckedAction = async (alert) => {
   alert.isRead = true
   alert.isChecked = true
   await getUnreadCount()
+  await getUncheckedCount()
 }
 
 const viewAlert = async (alert) => {
@@ -263,7 +432,7 @@ const viewAlert = async (alert) => {
   if (!alert.isRead) {
     await markAsReadAction(alert)
   }
-  
+
   // Navigate to detail page
   navigateTo(`/fraud-alerts/${alert.id}`)
 }
@@ -281,7 +450,9 @@ const formatDate = (dateString) => {
 
 // Load data on mount
 onMounted(async () => {
-  await refreshAlerts()
+  await loadAlerts()
+  await getUnreadCount()
+  await getUncheckedCount()
 })
 
 // Page title

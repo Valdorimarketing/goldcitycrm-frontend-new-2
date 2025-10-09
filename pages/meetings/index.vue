@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Toplantılar</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Randevular</h1>
         <p class="mt-2 text-sm text-gray-700">
-          Tüm toplantılarınızı buradan yönetebilirsiniz.
+          Tüm randevularınızı buradan yönetebilirsiniz.
         </p>
       </div>
       <div class="mt-4 sm:mt-0">
@@ -14,7 +14,7 @@
           class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
         >
           <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" />
-          Yeni Toplantı
+          Yeni Randevu
         </NuxtLink>
       </div>
     </div>
@@ -119,7 +119,7 @@
             <div class="flex items-center space-x-3 mb-2">
               <CalendarIcon class="h-5 w-5 text-indigo-600" />
               <h3 class="text-lg font-medium text-gray-900">
-                Toplantı #{{ meeting.id }}
+                Randevu #{{ meeting.id }}
               </h3>
               <span
                 v-if="meeting.meetingStatusInfo"
@@ -175,9 +175,9 @@
       <!-- Empty State -->
       <div v-if="filteredMeetings.length === 0" class="text-center py-12 card">
         <CalendarIcon class="mx-auto h-12 w-12 text-gray-400" />
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Toplantı bulunamadı</h3>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Randevu bulunamadı</h3>
         <p class="mt-1 text-sm text-gray-500">
-          {{ searchTerm ? 'Arama kriterlerinize uygun toplantı bulunamadı.' : 'Henüz toplantı planlanmamış.' }}
+          {{ searchTerm ? 'Arama kriterlerinize uygun randevu bulunamadı.' : 'Henüz randevu planlanmamış.' }}
         </p>
         <div class="mt-6">
           <NuxtLink
@@ -185,7 +185,7 @@
             class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
           >
             <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" />
-            İlk toplantıyı planla
+            İlk randevuyu planla
           </NuxtLink>
         </div>
       </div>
@@ -215,11 +215,11 @@
               </div>
               <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                 <h3 class="text-lg font-semibold leading-6 text-gray-900">
-                  Toplantıyı Sil
+                  Randevuyu Sil
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
-                    <strong>Toplantı #{{ meetingToDelete?.id }}</strong> silmek istediğinizden emin misiniz? 
+                    <strong>Randevu #{{ meetingToDelete?.id }}</strong> silmek istediğinizden emin misiniz?
                     Bu işlem geri alınamaz.
                   </p>
                 </div>
@@ -394,6 +394,6 @@ const getStatusClass = (status: string | undefined) => {
 
 // Page head
 useHead({
-  title: 'Toplantılar - Valdori CRM'
+  title: 'Randevular - Valdori CRM'
 })
 </script> 

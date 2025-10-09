@@ -24,15 +24,11 @@ export const useCustomerNotesStore = defineStore('customerNotes', () => {
   }) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
+      const api = useApi()
       const query: any = { page, limit, ...filters }
-      
-      const response = await $fetch('/customer-notes', {
-        baseURL: config.public.apiBase,
-        query,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+
+      const response = await api('/customer-notes', {
+        query
       })
       
       // Eğer response direkt array ise
@@ -71,13 +67,8 @@ export const useCustomerNotesStore = defineStore('customerNotes', () => {
   const fetchCustomerNote = async (id: number) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<CustomerNote>(`/customer-notes/${id}`, {
-        baseURL: config.public.apiBase,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
-      })
+      const api = useApi()
+      const response = await api<CustomerNote>(`/customer-notes/${id}`)
       
       currentNote.value = response
       return response
@@ -93,14 +84,10 @@ export const useCustomerNotesStore = defineStore('customerNotes', () => {
   const createCustomerNote = async (noteData: CreateCustomerNoteDto) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<CustomerNote>('/customer-notes', {
+      const api = useApi()
+      const response = await api<CustomerNote>('/customer-notes', {
         method: 'POST',
-        baseURL: config.public.apiBase,
-        body: noteData,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+        body: noteData
       })
       
       customerNotes.value.unshift(response)
@@ -117,14 +104,10 @@ export const useCustomerNotesStore = defineStore('customerNotes', () => {
   const updateCustomerNote = async (id: number, noteData: UpdateCustomerNoteDto) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<CustomerNote>(`/customer-notes/${id}`, {
+      const api = useApi()
+      const response = await api<CustomerNote>(`/customer-notes/${id}`, {
         method: 'PATCH',
-        baseURL: config.public.apiBase,
-        body: noteData,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+        body: noteData
       })
       
       const index = customerNotes.value.findIndex(n => n.id === id)
@@ -149,13 +132,9 @@ export const useCustomerNotesStore = defineStore('customerNotes', () => {
   const deleteCustomerNote = async (id: number) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      await $fetch(`/customer-notes/${id}`, {
-        method: 'DELETE',
-        baseURL: config.public.apiBase,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+      const api = useApi()
+      await api(`/customer-notes/${id}`, {
+        method: 'DELETE'
       })
       
       customerNotes.value = customerNotes.value.filter(n => n.id !== id)

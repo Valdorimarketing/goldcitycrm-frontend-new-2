@@ -456,8 +456,7 @@ const statuses = ref([])
 const locations = ref({
   countries: [],
   states: [],
-  cities: [],
-  districts: []
+  cities: []
 })
 const history = ref([])
 const loadingHistory = ref(false)
@@ -473,20 +472,19 @@ const showActionsDropdown = ref(false)
 // Computed properties
 const locationText = computed(() => {
   if (!customer.value) return ''
-  
+
   const parts = []
-  
+
   // Find location names from IDs
   const country = locations.value.countries.find(c => c.id === customer.value.country)
   const state = locations.value.states.find(s => s.id === customer.value.state)
   const city = locations.value.cities.find(c => c.id === customer.value.city)
-  const district = locations.value.districts.find(d => d.id === customer.value.district)
-  
-  if (district) parts.push(district.name)
+
+  if (customer.value.district) parts.push(customer.value.district)
   if (city) parts.push(city.name)
   if (state) parts.push(state.name)
   if (country) parts.push(country.name)
-  
+
   return parts.join(', ')
 })
 
@@ -641,19 +639,17 @@ const showFiles = () => {
 const fetchLocations = async () => {
   try {
     const api = useApi()
-    const [countriesRes, statesRes, citiesRes, districtsRes, statusesRes] = await Promise.all([
+    const [countriesRes, statesRes, citiesRes, statusesRes] = await Promise.all([
       api('/countries'),
       api('/states'),
       api('/cities'),
-      api('/districts').catch(() => []),
       api('/statuses').catch(() => [])
     ])
 
     locations.value = {
       countries: countriesRes,
       states: statesRes,
-      cities: citiesRes,
-      districts: districtsRes
+      cities: citiesRes
     }
 
     // Map statuses with snake_case to camelCase conversion

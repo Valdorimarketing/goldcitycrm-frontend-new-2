@@ -98,15 +98,20 @@ const handleSubmit = async () => {
   try {
     if (props.userGroup) {
       await updateUserGroup(props.userGroup.id, formData.value)
-      useToast().success('Kullanıcı grubu başarıyla güncellendi')
+      useToast().showSuccess('Kullanıcı grubu başarıyla güncellendi')
     } else {
       await createUserGroup(formData.value)
-      useToast().success('Kullanıcı grubu başarıyla eklendi')
+      useToast().showSuccess('Kullanıcı grubu başarıyla eklendi')
     }
     emit('saved')
-    emit('close')
   } catch (error) {
-    useToast().error('İşlem sırasında bir hata oluştu')
+    // Handle duplicate name error (409 Conflict)
+    if (error?.status === 409 || error?.statusCode === 409) {
+      alert('Bu isimde bir kullanıcı grubu zaten mevcut')
+    } else {
+      // Generic error message for other errors
+      useToast().showError('İşlem sırasında bir hata oluştu')
+    }
   } finally {
     saving.value = false
   }

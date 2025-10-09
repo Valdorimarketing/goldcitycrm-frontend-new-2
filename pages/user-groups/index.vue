@@ -215,9 +215,9 @@ const handleDelete = async () => {
     try {
       await deleteUserGroup(groupToDelete.value.id)
       await fetchUserGroups()
-      useToast().success('Kullanıcı grubu başarıyla silindi')
+      useToast().showSuccess('Kullanıcı grubu başarıyla silindi')
     } catch (error) {
-      useToast().error('Kullanıcı grubu silinirken bir hata oluştu')
+      useToast().showError('Kullanıcı grubu silinirken bir hata oluştu')
     }
   }
   showDeleteModal.value = false
@@ -236,8 +236,11 @@ const closeFormModal = () => {
 }
 
 const handleSaved = async () => {
-  await fetchUserGroups()
-  closeFormModal()
+  try {
+    await fetchUserGroups()
+  } finally {
+    closeFormModal()
+  }
 }
 
 const formatDate = (dateString) => {

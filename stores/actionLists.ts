@@ -16,18 +16,14 @@ export const useActionListsStore = defineStore('actionLists', () => {
   const fetchActionLists = async (page = 1, limit = 10, productId?: string) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
+      const $api = useApi()
       const query: any = { page, limit }
       if (productId) {
         query.productId = productId
       }
-      
-      const response = await $fetch<PaginatedResponse<ActionList>>('/action-list', {
-        baseURL: config.public.apiBase,
-        query,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+
+      const response = await $api<PaginatedResponse<ActionList>>('/action-list', {
+        query
       })
       
       // Eğer response direkt array ise
@@ -55,13 +51,8 @@ export const useActionListsStore = defineStore('actionLists', () => {
   const fetchActionList = async (id: number) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<ActionList>(`/action-list/${id}`, {
-        baseURL: config.public.apiBase,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
-      })
+      const $api = useApi()
+      const response = await $api<ActionList>(`/action-list/${id}`)
       
       currentActionList.value = response
       return response
@@ -77,14 +68,10 @@ export const useActionListsStore = defineStore('actionLists', () => {
   const createActionList = async (actionListData: CreateActionListDto) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<ActionList>('/action-list', {
+      const $api = useApi()
+      const response = await $api<ActionList>('/action-list', {
         method: 'POST',
-        baseURL: config.public.apiBase,
-        body: actionListData,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+        body: actionListData
       })
       
       actionLists.value.unshift(response)
@@ -101,14 +88,10 @@ export const useActionListsStore = defineStore('actionLists', () => {
   const updateActionList = async (id: number, actionListData: UpdateActionListDto) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<ActionList>(`/action-list/${id}`, {
+      const $api = useApi()
+      const response = await $api<ActionList>(`/action-list/${id}`, {
         method: 'PATCH',
-        baseURL: config.public.apiBase,
-        body: actionListData,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+        body: actionListData
       })
       
       const index = actionLists.value.findIndex(a => a.id === id)
@@ -133,13 +116,9 @@ export const useActionListsStore = defineStore('actionLists', () => {
   const deleteActionList = async (id: number) => {
     loading.value = true
     try {
-      const config = useRuntimeConfig()
-      await $fetch(`/action-list/${id}`, {
-        method: 'DELETE',
-        baseURL: config.public.apiBase,
-        headers: {
-          Authorization: `Bearer ${useCookie('auth-token').value}`
-        }
+      const $api = useApi()
+      await $api(`/action-list/${id}`, {
+        method: 'DELETE'
       })
       
       actionLists.value = actionLists.value.filter(a => a.id !== id)

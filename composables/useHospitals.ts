@@ -13,33 +13,59 @@ export const useHospitals = () => {
   const hospitals = ref<Hospital[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const meta = ref({
+    page: 1,
+    limit: 20,
+    total: 0
+  })
 
-  const fetchHospitals = async (limit: number = 100, page: number = 1) => {
+  const fetchHospitals = async (params?: {
+    page?: number
+    limit?: number
+    search?: string
+    order?: 'ASC' | 'DESC'
+  }) => {
     loading.value = true
     error.value = null
     try {
       // Build query parameters
-      const params = new URLSearchParams()
-      params.append('page', page.toString())
-      params.append('limit', limit.toString())
+      const queryParams = new URLSearchParams()
+      queryParams.append('page', (params?.page || 1).toString())
+      queryParams.append('limit', (params?.limit || 20).toString())
+      if (params?.search) {
+        queryParams.append('search', params.search)
+      }
+      if (params?.order) {
+        queryParams.append('order', params.order)
+      }
 
-      const url = `/hospitals?${params.toString()}`
+      const url = `/hospitals?${queryParams.toString()}`
       const response: any = await $api(url)
-
-      console.log('Hospitals API response:', response)
 
       // API returns { data: [...], meta: {...} }
       if (response && response.data && Array.isArray(response.data)) {
         hospitals.value = response.data
+        if (response.meta) {
+          meta.value = {
+            page: response.meta.page || 1,
+            limit: response.meta.limit || 20,
+            total: response.meta.total || 0
+          }
+        }
       } else if (Array.isArray(response)) {
         hospitals.value = response
+        // If response is just an array, assume all data is loaded
+        meta.value = {
+          page: 1,
+          limit: response.length,
+          total: response.length
+        }
       } else {
         console.warn('Unexpected response structure:', response)
         hospitals.value = []
       }
 
-      console.log(`Total hospitals fetched: ${hospitals.value.length}`)
-      return hospitals.value
+      return { data: hospitals.value, meta: meta.value }
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch hospitals'
       hospitals.value = []
@@ -117,6 +143,7 @@ export const useHospitals = () => {
     hospitals,
     loading,
     error,
+    meta,
     fetchHospitals,
     fetchHospital,
     createHospital,
