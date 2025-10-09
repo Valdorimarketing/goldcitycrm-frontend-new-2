@@ -4,10 +4,10 @@ export const useApi = () => {
   const api = $fetch.create({
     baseURL: config.public.apiBase,
     onRequest({ options }) {
-      // Get token from cookie or localStorage
-      const token = useCookie('auth-token').value || 
-                   (process.client ? localStorage.getItem('auth-token') : null)
-      
+      // Get token from localStorage first (more reliable in production), then fall back to cookie
+      const token = (import.meta.client ? localStorage.getItem('auth-token') : null) ||
+                   useCookie('auth-token').value
+
       if (token) {
         // Add Authorization header
         options.headers = {
@@ -20,12 +20,12 @@ export const useApi = () => {
       // Handle 401 Unauthorized
       if (response.status === 401) {
         console.error('Unauthorized - Token may be expired')
-        
+
         // Clear auth and redirect to login
-        if (process.client) {
+        if (import.meta.client) {
           const authStore = useAuthStore()
           authStore.logout()
-          
+
           // Redirect to login page
           navigateTo('/login')
         }

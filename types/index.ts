@@ -278,8 +278,11 @@ export interface Product {
   id: number
   name: string
   price: number
-  createdAt?: string
-  updatesAt?: string
+  description?: string
+  category?: string
+  isActive?: boolean
+  createdAt?: string | Date
+  updatesAt?: string | Date
 }
 
 export interface CreateProductDto {

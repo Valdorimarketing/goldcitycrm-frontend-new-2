@@ -2,9 +2,9 @@
   <div>
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Yeni Toplantı Oluştur</h1>
+      <h1 class="text-2xl font-bold text-gray-900">Yeni Randevu Oluştur</h1>
       <p class="mt-2 text-sm text-gray-700">
-        Yeni bir toplantı planlamak için aşağıdaki formu doldurun.
+        Yeni bir randevu planlamak için aşağıdaki formu doldurun.
       </p>
     </div>
 
@@ -48,7 +48,7 @@
         <!-- Meeting Location -->
         <div>
           <label for="meetingLocation" class="block text-sm font-medium text-gray-700 mb-2">
-            Toplantı Konumu
+            Randevu Konumu
           </label>
           <select
             id="meetingLocation"
@@ -150,7 +150,7 @@
             v-model="form.description"
             rows="4"
             class="form-input"
-            placeholder="Toplantı hakkında notlar..."
+            placeholder="Randevu hakkında notlar..."
           />
         </div>
 
@@ -168,7 +168,7 @@
             class="btn-primary"
           >
             <span v-if="loading">Kaydediliyor...</span>
-            <span v-else>Toplantı Oluştur</span>
+            <span v-else>Randevu Oluştur</span>
           </button>
         </div>
       </form>
@@ -252,7 +252,7 @@ const handleSubmit = async () => {
     router.push('/meetings')
   } catch (error) {
     console.error('Failed to create meeting:', error)
-    alert('Toplantı oluşturulurken bir hata oluştu!')
+    alert('Randevu oluşturulurken bir hata oluştu!')
   } finally {
     loading.value = false
   }
@@ -265,6 +265,6 @@ const formatCurrency = (amount: number) => {
 
 // Page head
 useHead({
-  title: 'Yeni Toplantı - Valdori CRM'
+  title: 'Yeni Randevu - Valdori CRM'
 })
 </script>

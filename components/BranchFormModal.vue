@@ -76,54 +76,6 @@
                             class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-
-                        <div>
-                          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Telefon
-                          </label>
-                          <input
-                            id="phone"
-                            v-model="formData.phone"
-                            type="tel"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            E-posta
-                          </label>
-                          <input
-                            id="email"
-                            v-model="formData.email"
-                            type="email"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Adres
-                          </label>
-                          <textarea
-                            id="address"
-                            v-model="formData.address"
-                            rows="2"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Açıklama
-                          </label>
-                          <textarea
-                            id="description"
-                            v-model="formData.description"
-                            rows="2"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -170,11 +122,7 @@ const saving = ref(false)
 const formData = ref({
   hospitalId: '',
   name: '',
-  code: '',
-  phone: '',
-  email: '',
-  address: '',
-  description: ''
+  code: ''
 })
 
 const handleSubmit = async () => {
@@ -207,21 +155,13 @@ watch(() => props.branch, (newVal) => {
     formData.value = {
       hospitalId: newVal.hospitalId || '',
       name: newVal.name || '',
-      code: newVal.code || '',
-      phone: newVal.phone || '',
-      email: newVal.email || '',
-      address: newVal.address || '',
-      description: newVal.description || ''
+      code: newVal.code || ''
     }
   } else {
     formData.value = {
       hospitalId: '',
       name: '',
-      code: '',
-      phone: '',
-      email: '',
-      address: '',
-      description: ''
+      code: ''
     }
   }
 }, { immediate: true })

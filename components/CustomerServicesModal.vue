@@ -3,8 +3,8 @@
     <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
       <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-opacity" @click="close"></div>
 
-      <div class="inline-block transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:align-middle">
-        <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+      <div class="inline-block transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:align-middle sm:max-h-[90vh] sm:min-h-[700px]">
+        <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-y-auto max-h-[75vh] min-h-[600px]">
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
               <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">
@@ -118,7 +118,7 @@
 
                     <!-- Ürün Dropdown -->
                     <div v-if="showProductDropdown && filteredProducts.length > 0"
-                         class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
+                         class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
                       <div
                         v-for="product in filteredProducts"
                         :key="product.id"
@@ -193,12 +193,20 @@
                     />
                   </div>
 
-                  <button
-                    @click="addService"
-                    class="mt-3 w-full btn-primary text-sm"
-                  >
-                    Hizmeti Ekle
-                  </button>
+                  <div class="mt-3 flex gap-2">
+                    <button
+                      @click="addService"
+                      class="flex-1 btn-primary text-sm"
+                    >
+                      Hizmeti Ekle
+                    </button>
+                    <button
+                      @click="cancelProductSelection"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-50 dark:hover:bg-gray-500"
+                    >
+                      Vazgeç
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -371,6 +379,17 @@ const addService = () => {
 
 const removeService = (index) => {
   services.value.splice(index, 1)
+}
+
+const cancelProductSelection = () => {
+  selectedProduct.value = null
+  productSearch.value = ''
+  newService.value = {
+    price: 0,
+    discount: 0,
+    offer: 0,
+    note: ''
+  }
 }
 
 const saveServices = async () => {

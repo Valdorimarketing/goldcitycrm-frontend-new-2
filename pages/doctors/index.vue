@@ -52,12 +52,6 @@
 
     <!-- Doctors Table -->
     <div v-else class="card">
-      <!-- Results Info -->
-      <div class="px-6 py-3 border-b border-gray-200 dark:border-gray-700">
-        <p class="text-sm text-gray-700 dark:text-gray-300">
-          Toplam <span class="font-medium">{{ totalItems }}</span> doktor bulundu
-        </p>
-      </div>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
@@ -71,7 +65,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="doctor in paginatedDoctors" :key="doctor.id">
+            <tr v-for="doctor in allDoctors" :key="doctor.id">
               <td class="table-cell">
                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {{ doctor.name || '-' }}
@@ -118,13 +112,13 @@
                 </div>
               </td>
             </tr>
-            
+
             <!-- Empty State -->
-            <tr v-if="paginatedDoctors.length === 0">
+            <tr v-if="allDoctors.length === 0">
               <td colspan="6" class="text-center py-12">
                 <UserGroupIcon class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Doktor bulunamadı</h3>
-                <p class="mt-1 text-sm text-gray-500">
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Doktor bulunamadı</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {{ searchTerm ? 'Arama kriterlerinize uygun doktor bulunamadı.' : 'Henüz doktor eklenmemiş.' }}
                 </p>
                 <div class="mt-6">
@@ -143,79 +137,68 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-        <nav class="flex items-center justify-between">
-          <div class="flex flex-1 justify-between sm:hidden">
-            <button
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Önceki
-            </button>
-            <button
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sonraki
-            </button>
+      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6">
+        <div class="flex flex-1 justify-between sm:hidden">
+          <button
+            :disabled="pagination.page === 1"
+            @click="changePage(pagination.page - 1)"
+            class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          >
+            Önceki
+          </button>
+          <button
+            :disabled="pagination.page === pagination.totalPages"
+            @click="changePage(pagination.page + 1)"
+            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          >
+            Sonraki
+          </button>
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span>
+              -
+              <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
+              arası, toplam
+              <span class="font-medium">{{ pagination.total }}</span>
+              sonuç
+            </p>
           </div>
-          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700 dark:text-gray-300">
-                <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-                -
-                <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, totalItems) }}</span>
-                arası gösteriliyor, toplam
-                <span class="font-medium">{{ totalItems }}</span>
-                doktor
-              </p>
-            </div>
-            <div>
-              <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                <button
-                  @click="goToPage(currentPage - 1)"
-                  :disabled="currentPage === 1"
-                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed dark:ring-gray-600 dark:hover:bg-gray-700"
-                >
-                  <span class="sr-only">Önceki</span>
-                  <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
-                </button>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+              <button
+                :disabled="pagination.page === 1"
+                @click="changePage(pagination.page - 1)"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                <ChevronLeftIcon class="h-5 w-5" />
+              </button>
 
-                <template v-for="page in paginationRange" :key="page">
-                  <button
-                    v-if="page !== '...'"
-                    @click="goToPage(page)"
-                    :class="[
-                      page === currentPage
-                        ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-700',
-                      'relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20'
-                    ]"
-                  >
-                    {{ page }}
-                  </button>
-                  <span
-                    v-else
-                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0 dark:text-gray-300 dark:ring-gray-600"
-                  >
-                    ...
-                  </span>
-                </template>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="changePage(page)"
+                :class="[
+                  page === pagination.page
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
+                  'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
+                ]"
+              >
+                {{ page }}
+              </button>
 
-                <button
-                  @click="goToPage(currentPage + 1)"
-                  :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed dark:ring-gray-600 dark:hover:bg-gray-700"
-                >
-                  <span class="sr-only">Sonraki</span>
-                  <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
+              <button
+                :disabled="pagination.page === pagination.totalPages"
+                @click="changePage(pagination.page + 1)"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                <ChevronRightIcon class="h-5 w-5" />
+              </button>
+            </nav>
           </div>
-        </nav>
+        </div>
       </div>
     </div>
 
@@ -281,11 +264,20 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/vue/24/outline'
+import { watchDebounced } from '@vueuse/core'
 
-const { allDoctors, loading, fetchDoctors, fetchDoctor, deleteDoctor } = useDoctors()
+const { allDoctors, loading, meta, fetchDoctors, fetchDoctor, deleteDoctor } = useDoctors()
 
 // Search and filters
 const searchTerm = ref('')
+
+// Pagination
+const pagination = computed(() => ({
+  page: meta.value.page,
+  limit: meta.value.limit,
+  total: meta.value.total,
+  totalPages: Math.ceil(meta.value.total / meta.value.limit)
+}))
 
 // Modals
 const showDeleteModal = ref(false)
@@ -294,80 +286,45 @@ const showCreateModal = ref(false)
 const showFormModal = ref(false)
 const selectedDoctor = ref(null)
 
-// Pagination state
-const currentPage = ref(1)
-const itemsPerPage = ref(50)
-
 // Computed properties
-const filteredDoctors = computed(() => {
-  let filtered = allDoctors.value
+const visiblePages = computed(() => {
+  const pages = []
+  const total = pagination.value.totalPages
+  const current = pagination.value.page
 
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(doctor =>
-      doctor.name?.toLowerCase().includes(search) ||
-      doctor.branch?.name?.toLowerCase().includes(search)
-    )
-  }
-
-  return filtered
-})
-
-// Paginated doctors for display
-const paginatedDoctors = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredDoctors.value.slice(start, end)
-})
-
-// Total items and pages based on filtered results
-const totalItems = computed(() => filteredDoctors.value.length)
-const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
-
-const paginationRange = computed(() => {
-  const range = []
-  const maxVisible = 7
-  const halfVisible = Math.floor(maxVisible / 2)
-
-  if (totalPages.value <= maxVisible) {
-    for (let i = 1; i <= totalPages.value; i++) {
-      range.push(i)
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
     }
   } else {
-    if (currentPage.value <= halfVisible) {
-      for (let i = 1; i <= maxVisible - 2; i++) {
-        range.push(i)
-      }
-      range.push('...')
-      range.push(totalPages.value)
-    } else if (currentPage.value >= totalPages.value - halfVisible) {
-      range.push(1)
-      range.push('...')
-      for (let i = totalPages.value - (maxVisible - 3); i <= totalPages.value; i++) {
-        range.push(i)
-      }
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total)
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total)
     } else {
-      range.push(1)
-      range.push('...')
-      for (let i = currentPage.value - 1; i <= currentPage.value + 1; i++) {
-        range.push(i)
-      }
-      range.push('...')
-      range.push(totalPages.value)
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
     }
   }
 
-  return range
+  return pages.filter(page => page !== '...')
 })
 
 // Methods
+const loadDoctors = async (page = 1) => {
+  await fetchDoctors({
+    page,
+    search: searchTerm.value || undefined
+  })
+}
+
 const resetFilters = () => {
   searchTerm.value = ''
 }
 
-const goToPage = (page) => {
-  if (page < 1 || page > totalPages.value || page === currentPage.value) return
-  currentPage.value = page
+const changePage = (page) => {
+  if (page >= 1 && page <= pagination.value.totalPages) {
+    loadDoctors(page)
+  }
 }
 
 const confirmDelete = (doctor) => {
@@ -379,7 +336,7 @@ const handleDelete = async () => {
   if (doctorToDelete.value) {
     try {
       await deleteDoctor(doctorToDelete.value.id)
-      await fetchDoctors()
+      await loadDoctors(pagination.value.page)
       useToast().success('Doktor başarıyla silindi')
     } catch (error) {
       useToast().error('Doktor silinirken bir hata oluştu')
@@ -408,7 +365,7 @@ const closeFormModal = () => {
 }
 
 const handleSaved = async () => {
-  await fetchDoctors()
+  await loadDoctors(pagination.value.page)
   closeFormModal()
 }
 
@@ -416,6 +373,15 @@ const formatDate = (dateString) => {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString('tr-TR')
 }
+
+// Watch for search term changes with debounce
+watchDebounced(
+  searchTerm,
+  () => {
+    loadDoctors(1) // Reset to page 1 when searching
+  },
+  { debounce: 500 }
+)
 
 // Watch for create modal
 watch(showCreateModal, (newVal) => {
@@ -427,12 +393,7 @@ watch(showCreateModal, (newVal) => {
 
 // Initialize data
 onMounted(async () => {
-  await fetchDoctors()
-})
-
-// Reset page when search changes
-watch(searchTerm, () => {
-  currentPage.value = 1
+  await loadDoctors()
 })
 
 // Page head

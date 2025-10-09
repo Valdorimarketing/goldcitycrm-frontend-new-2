@@ -204,8 +204,10 @@
                             v-model="form.phone"
                             type="tel"
                             required
+                            @input="formatPhoneNumber"
                             class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 transition-all"
-                            placeholder="(555) 123-4567"
+                            placeholder="(5xx) xxx xx xx"
+                            maxlength="16"
                           />
                           <p v-if="errors.phone" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ errors.phone }}</p>
                         </div>
@@ -333,6 +335,7 @@
                             class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 transition-all"
                             placeholder="https://www.example.com"
                           />
+                          <p v-if="errors.website" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ errors.website }}</p>
                         </div>
 
                         <!-- Source -->
@@ -853,14 +856,12 @@ const sortedDynamicFields = computed(() => {
 const countries = ref([])
 const states = ref([])
 const cities = ref([])
-const districts = ref([])
 const sources = ref([])
 const statuses = ref([])
 
 const loadingCountries = ref(false)
 const loadingStates = ref(false)
 const loadingCities = ref(false)
-const loadingDistricts = ref(false)
 
 // Form state
 const loading = ref(false)
@@ -985,8 +986,7 @@ const onCountryChange = async () => {
   form.district = null
   states.value = []
   cities.value = []
-  districts.value = []
-  
+
   if (form.country) {
     try {
       loadingStates.value = true
@@ -1006,8 +1006,7 @@ const onStateChange = async () => {
   form.city = null
   form.district = null
   cities.value = []
-  districts.value = []
-  
+
   if (form.state) {
     try {
       loadingCities.value = true
@@ -1024,46 +1023,62 @@ const onStateChange = async () => {
 }
 
 const onCityChange = async () => {
-  form.district = null
-  districts.value = []
-  
-  if (form.city) {
-    try {
-      loadingDistricts.value = true
-      const api = useApi()
-      const response = await api('/districts')
-      const allDistricts = response.data || response || []
-      districts.value = allDistricts.filter(d => d.city === form.city)
-    } catch (error) {
-      console.error('Error loading districts:', error)
-    } finally {
-      loadingDistricts.value = false
+  // District is now a text field, no need to reset or load districts
+}
+
+// Format phone number to (5xx) xxx xx xx
+const formatPhoneNumber = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+
+  if (value.length > 0) {
+    if (value.length <= 3) {
+      value = `(${value}`
+    } else if (value.length <= 6) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3)}`
+    } else if (value.length <= 8) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6)}`
+    } else {
+      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6, 8)} ${value.slice(8, 10)}`
     }
   }
+
+  form.phone = value
 }
 
 // Validate form
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!form.name?.trim()) {
     errors.value.name = 'Ad gereklidir'
   }
-  
+
   if (!form.surname?.trim()) {
     errors.value.surname = 'Soyad gereklidir'
   }
-  
+
   if (!form.email?.trim()) {
     errors.value.email = 'E-posta gereklidir'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     errors.value.email = 'Geçerli bir e-posta adresi giriniz'
   }
-  
+
   if (!form.phone?.trim()) {
     errors.value.phone = 'Telefon numarası gereklidir'
+  } else {
+    const phoneDigits = form.phone.replace(/\D/g, '')
+    if (phoneDigits.length !== 10 || !phoneDigits.startsWith('5')) {
+      errors.value.phone = 'Telefon numarası (5xx) xxx xx xx formatında olmalıdır'
+    }
   }
-  
+
+  if (form.website?.trim()) {
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    if (!urlPattern.test(form.website.trim())) {
+      errors.value.website = 'Geçerli bir web adresi giriniz (örn: https://www.example.com)'
+    }
+  }
+
   return Object.keys(errors.value).length === 0
 }
 

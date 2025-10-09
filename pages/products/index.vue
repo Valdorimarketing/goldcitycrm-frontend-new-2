@@ -21,9 +21,9 @@
 
     <!-- Search and Filters -->
     <div class="card mb-6">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <div>
-          <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Ara
           </label>
           <input
@@ -31,29 +31,37 @@
             v-model="searchTerm"
             type="text"
             class="form-input"
-            placeholder="Ürün adı veya kategori..."
+            placeholder="Ürün adı..."
           />
         </div>
         <div>
-          <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
-            Kategori
+          <label for="minPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Min. Fiyat
           </label>
-          <select
-            id="category"
-            v-model="categoryFilter"
+          <input
+            id="minPrice"
+            v-model.number="minPrice"
+            type="number"
             class="form-input"
-          >
-            <option value="">Tüm Kategoriler</option>
-            <option value="web">Web Geliştirme</option>
-            <option value="mobile">Mobil Uygulama</option>
-            <option value="design">Tasarım</option>
-            <option value="consulting">Danışmanlık</option>
-          </select>
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label for="maxPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Max. Fiyat
+          </label>
+          <input
+            id="maxPrice"
+            v-model.number="maxPrice"
+            type="number"
+            class="form-input"
+            placeholder="999999"
+          />
         </div>
         <div class="flex items-end">
           <button
             @click="resetFilters"
-            class="btn-secondary"
+            class="btn-secondary w-full"
           >
             Filtreleri Temizle
           </button>
@@ -61,45 +69,51 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    </div>
+
     <!-- Products Grid -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <div
-        v-for="product in filteredProducts"
-        :key="product.id"
-        class="card hover:shadow-lg transition-shadow duration-200"
-      >
+    <div v-else>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+        <div
+          v-for="product in products"
+          :key="product.id"
+          class="card hover:shadow-lg transition-shadow duration-200"
+        >
         <!-- Product Header -->
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-3">
-            <div class="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-              <CubeIcon class="h-5 w-5 text-indigo-600" />
+            <div class="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+              <CubeIcon class="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-              <p class="text-sm text-gray-500">Ürün</p>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ product.name }}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Ürün</p>
             </div>
           </div>
-          <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+          <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
             Aktif
           </span>
         </div>
 
         <!-- Product Info -->
         <div class="mb-4">
-          <div class="text-sm text-gray-600">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
             <span class="font-medium">Oluşturulma:</span> {{ formatDate(product.createdAt) }}
           </div>
-          <div class="text-sm text-gray-600" v-if="product.updatesAt">
+          <div class="text-sm text-gray-600 dark:text-gray-400" v-if="product.updatesAt">
             <span class="font-medium">Güncellenme:</span> {{ formatDate(product.updatesAt) }}
           </div>
         </div>
 
         <!-- Price -->
         <div class="mb-4">
-          <div class="text-2xl font-bold text-gray-900">
+          <div class="text-2xl font-bold text-gray-900 dark:text-white">
             ₺{{ formatCurrency(product.price) }}
           </div>
-          <div class="text-sm text-gray-500">Başlangıç fiyatı</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Başlangıç fiyatı</div>
         </div>
 
         <!-- Actions -->
@@ -133,24 +147,92 @@
             </button>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Empty State -->
-      <div v-if="filteredProducts.length === 0" class="col-span-full">
+      <div v-if="products.length === 0">
         <div class="text-center py-12">
           <CubeIcon class="mx-auto h-12 w-12 text-gray-400" />
-          <h3 class="mt-2 text-sm font-medium text-gray-900">Ürün bulunamadı</h3>
-          <p class="mt-1 text-sm text-gray-500">
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Ürün bulunamadı</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{ searchTerm ? 'Arama kriterlerinize uygun ürün bulunamadı.' : 'Henüz ürün eklenmemiş.' }}
           </p>
           <div class="mt-6">
-            <NuxtLink
-              to="/products/new"
+            <button
+              @click="showCreateModal = true"
               class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
             >
               <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" />
               İlk ürünü ekle
-            </NuxtLink>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="pagination.totalPages > 1" class="card mt-6">
+        <div class="flex items-center justify-between px-4 py-3 sm:px-6">
+          <div class="flex flex-1 justify-between sm:hidden">
+            <button
+              :disabled="pagination.page === 1"
+              @click="changePage(pagination.page - 1)"
+              class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+            >
+              Önceki
+            </button>
+            <button
+              :disabled="pagination.page === pagination.totalPages"
+              @click="changePage(pagination.page + 1)"
+              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+            >
+              Sonraki
+            </button>
+          </div>
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span>
+                -
+                <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
+                arası, toplam
+                <span class="font-medium">{{ pagination.total }}</span>
+                sonuç
+              </p>
+            </div>
+            <div>
+              <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                <button
+                  :disabled="pagination.page === 1"
+                  @click="changePage(pagination.page - 1)"
+                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                >
+                  <ChevronLeftIcon class="h-5 w-5" />
+                </button>
+
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  @click="changePage(page)"
+                  :class="[
+                    page === pagination.page
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
+                    'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
+                  ]"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  :disabled="pagination.page === pagination.totalPages"
+                  @click="changePage(pagination.page + 1)"
+                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                >
+                  <ChevronRightIcon class="h-5 w-5" />
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
       </div>
@@ -159,37 +241,37 @@
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto">
       <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-        
-        <div class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-          <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-opacity"></div>
+
+        <div class="inline-block transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+          <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
             <div class="sm:flex sm:items-start">
-              <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                <ExclamationTriangleIcon class="h-6 w-6 text-red-600" />
+              <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                <ExclamationTriangleIcon class="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900">
+                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
                   Ürünü Sil
                 </h3>
                 <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    <strong>{{ productToDelete?.name }}</strong> adlı ürünü silmek istediğinizden emin misiniz? 
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    <strong class="text-gray-700 dark:text-gray-300">{{ productToDelete?.name }}</strong> adlı ürünü silmek istediğinizden emin misiniz?
                     Bu işlem geri alınamaz.
                   </p>
                 </div>
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
             <button
               @click="handleDelete"
-              class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+              class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 dark:bg-red-600 dark:hover:bg-red-700 sm:ml-3 sm:w-auto"
             >
               Sil
             </button>
             <button
               @click="showDeleteModal = false"
-              class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-600 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 sm:mt-0 sm:w-auto"
             >
               İptal
             </button>
@@ -238,16 +320,30 @@
 import {
   PlusIcon,
   CubeIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/vue/24/outline'
+import { watchDebounced } from '@vueuse/core'
 
 definePageMeta({
   // middleware: 'auth' // Temporarily disabled
 })
 
+const { products, loading, meta, fetchProducts, deleteProduct } = useProducts()
+
 // Search and filters
 const searchTerm = ref('')
-const categoryFilter = ref('')
+const minPrice = ref<number | undefined>(undefined)
+const maxPrice = ref<number | undefined>(undefined)
+
+// Pagination
+const pagination = computed(() => ({
+  page: meta.value.page,
+  limit: meta.value.limit,
+  total: meta.value.total,
+  totalPages: Math.ceil(meta.value.total / meta.value.limit)
+}))
 
 // Modals
 const showDeleteModal = ref(false)
@@ -259,60 +355,49 @@ const showActionCreateModal = ref(false)
 const showActionListModal = ref(false)
 const selectedProductForAction = ref(null)
 
-// Import products store
-const productsStore = useProductsStore()
-
-// Initialize with empty array to prevent undefined errors
-productsStore.products.value = []
-
-// Load data from API
-onMounted(async () => {
-  try {
-    const api = useApi()
-    console.log('Loading products...')
-    
-    const response = await api('/products')
-    
-    console.log('Products loaded:', response)
-    if (response) {
-      if (Array.isArray(response)) {
-        productsStore.products.value = response
-      } else if (response.data && Array.isArray(response.data)) {
-        productsStore.products.value = response.data
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load products:', error)
-    // Continue with empty array instead of demo data
-  }
-})
-
 // Computed properties
-const filteredProducts = computed(() => {
-  let filtered = productsStore.products.value
+const visiblePages = computed(() => {
+  const pages = []
+  const total = pagination.value.totalPages
+  const current = pagination.value.page
 
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(product =>
-      product.name?.toLowerCase().includes(search) ||
-      product.description?.toLowerCase().includes(search) ||
-      product.category?.toLowerCase().includes(search)
-    )
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total)
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
+    }
   }
 
-  if (categoryFilter.value) {
-    filtered = filtered.filter(product => 
-      product.category?.toLowerCase().includes(categoryFilter.value.toLowerCase())
-    )
-  }
-
-  return filtered
+  return pages.filter(page => page !== '...')
 })
 
 // Methods
+const loadProducts = async (page = 1) => {
+  await fetchProducts({
+    page,
+    search: searchTerm.value || undefined,
+    minPrice: minPrice.value,
+    maxPrice: maxPrice.value
+  })
+}
+
 const resetFilters = () => {
   searchTerm.value = ''
-  categoryFilter.value = ''
+  minPrice.value = undefined
+  maxPrice.value = undefined
+}
+
+const changePage = (page) => {
+  if (page >= 1 && page <= pagination.value.totalPages) {
+    loadProducts(page)
+  }
 }
 
 const confirmDelete = (product) => {
@@ -323,23 +408,11 @@ const confirmDelete = (product) => {
 const handleDelete = async () => {
   if (productToDelete.value) {
     try {
-      const api = useApi()
-      
-      // First remove from local state for immediate feedback
-      const productId = productToDelete.value.id
-      productsStore.products.value = productsStore.products.value.filter(
-        p => p.id !== productId
-      )
-      
-      // Then sync with API in background
-      await api(`/products/${productId}`, {
-        method: 'DELETE'
-      })
-      
-      console.log('Product deleted successfully')
+      await deleteProduct(productToDelete.value.id)
+      await loadProducts(pagination.value.page)
+      useToast().success('Ürün başarıyla silindi')
     } catch (error) {
-      console.error('Error deleting product (using demo mode):', error)
-      // Product is already removed from local state, so no need to revert
+      useToast().error('Ürün silinirken bir hata oluştu')
     }
   }
   showDeleteModal.value = false
@@ -362,15 +435,9 @@ const formatDate = (dateString) => {
 }
 
 // Handle product creation
-const handleProductCreated = (product) => {
-  console.log('New product created:', product)
-  // Add to beginning of products list for immediate visibility
-  productsStore.products.value.unshift({
-    ...product,
-    description: product.description || 'Açıklama bulunmuyor.',
-    category: product.category || 'Genel',
-    isActive: product.isActive !== undefined ? product.isActive : true
-  })
+const handleProductCreated = async (product) => {
+  await loadProducts(pagination.value.page)
+  useToast().success('Ürün başarıyla oluşturuldu')
 }
 
 // Handle product edit
@@ -380,13 +447,9 @@ const editProduct = (product) => {
 }
 
 // Handle product update
-const handleProductUpdated = (updatedProduct) => {
-  console.log('Product updated:', updatedProduct)
-  // Find and update the product in the list
-  const index = productsStore.products.value.findIndex(p => p.id === updatedProduct.id)
-  if (index !== -1) {
-    productsStore.products.value[index] = updatedProduct
-  }
+const handleProductUpdated = async (updatedProduct) => {
+  await loadProducts(pagination.value.page)
+  useToast().success('Ürün başarıyla güncellendi')
 }
 
 // Close modal functions
@@ -407,9 +470,22 @@ const openActionListModal = (product) => {
 }
 
 const handleActionCreated = () => {
-  // Optionally show a success message or refresh action list
   console.log('Action created successfully')
 }
+
+// Watch for search term changes with debounce
+watchDebounced(
+  [searchTerm, minPrice, maxPrice],
+  () => {
+    loadProducts(1) // Reset to page 1 when searching or filtering
+  },
+  { debounce: 500 }
+)
+
+// Initialize data
+onMounted(async () => {
+  await loadProducts()
+})
 
 // Page head
 useHead({

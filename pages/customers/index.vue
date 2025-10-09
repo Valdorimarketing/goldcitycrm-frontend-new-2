@@ -23,7 +23,7 @@
     <div class="card mb-6">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-          <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Ara
           </label>
           <input
@@ -35,7 +35,7 @@
           />
         </div>
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Durum
           </label>
           <select
@@ -43,8 +43,7 @@
             v-model="statusFilter"
             class="form-input"
           >
-            <option value="">Tüm Durumlar</option>
-            <option value="assigned-pending">Atandı - Beklemede</option>
+            <option :value="undefined">Tüm Durumlar</option>
             <option v-for="status in statusOptions" :key="status.value" :value="status.value">
               {{ status.label }}
             </option>
@@ -53,7 +52,7 @@
         <div class="flex items-end">
           <button
             @click="resetFilters"
-            class="btn-secondary"
+            class="btn-secondary w-full"
           >
             Filtreleri Temizle
           </button>
@@ -85,7 +84,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="customer in filteredCustomers" :key="customer.id">
+            <tr v-for="customer in customers" :key="customer.id">
               <td class="table-cell">
                 <div class="flex items-center">
                   <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
@@ -226,12 +225,12 @@
             </tr>
             
             <!-- Empty State -->
-            <tr v-if="filteredCustomers.length === 0">
+            <tr v-if="customers.length === 0">
               <td colspan="10" class="text-center py-12">
                 <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Müşteri bulunamadı</h3>
-                <p class="mt-1 text-sm text-gray-500">
-                  {{ searchTerm ? 'Arama kriterlerinize uygun müşteri bulunamadı.' : 'Henüz müşteri eklenmemiş.' }}
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Müşteri bulunamadı</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{ searchTerm || statusFilter ? 'Arama kriterlerinize uygun müşteri bulunamadı.' : 'Henüz müşteri eklenmemiş.' }}
                 </p>
                 <div class="mt-6">
                   <NuxtLink
@@ -249,26 +248,26 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6">
         <div class="flex flex-1 justify-between sm:hidden">
           <button
             :disabled="pagination.page === 1"
             @click="changePage(pagination.page - 1)"
-            class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
           >
             Önceki
           </button>
           <button
             :disabled="pagination.page === pagination.totalPages"
             @click="changePage(pagination.page + 1)"
-            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
           >
             Sonraki
           </button>
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
               <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span>
               -
               <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
@@ -282,11 +281,11 @@
               <button
                 :disabled="pagination.page === 1"
                 @click="changePage(pagination.page - 1)"
-                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <ChevronLeftIcon class="h-5 w-5" />
               </button>
-              
+
               <button
                 v-for="page in visiblePages"
                 :key="page"
@@ -294,17 +293,17 @@
                 :class="[
                   page === pagination.page
                     ? 'bg-indigo-600 text-white'
-                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50',
+                    : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
                   'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
                 ]"
               >
                 {{ page }}
               </button>
-              
+
               <button
                 :disabled="pagination.page === pagination.totalPages"
                 @click="changePage(pagination.page + 1)"
-                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 <ChevronRightIcon class="h-5 w-5" />
               </button>
@@ -419,6 +418,8 @@ import {
   TrashIcon,
   FolderIcon
 } from '@heroicons/vue/24/outline'
+import { watchDebounced } from '@vueuse/core'
+import { storeToRefs } from 'pinia'
 
 definePageMeta({
   // middleware: 'auth' // Temporarily disabled
@@ -427,25 +428,13 @@ definePageMeta({
 // Permissions
 const { getCustomerFilters, canAccessCustomer, userId } = usePermissions()
 
-// Store (temporarily disabled)
-// const customersStore = useCustomersStore()
-// const { customers, loading, pagination } = storeToRefs(customersStore)
-const loading = ref(true) // Start with loading true
-const pagination = ref({
-  total: 0,
-  page: 1,
-  limit: 10,
-  totalPages: 0
-})
-
-// Sample customers data for demo - will be replaced by API data
-const customersData = ref([])
-
-// Load data - moved to onMounted to avoid blocking page render
+// Store
+const customersStore = useCustomersStore()
+const { customers, loading, pagination } = storeToRefs(customersStore)
 
 // Search and filters
 const searchTerm = ref('')
-const statusFilter = ref('')
+const statusFilter = ref(undefined)
 const statusOptions = ref([])
 const statusMap = ref({}) // Status ID to status object mapping
 const usersMap = ref({}) // User ID to user object mapping
@@ -460,40 +449,6 @@ const showDoctorModal = ref(false)
 const showServicesModal = ref(false)
 const showFilesModal = ref(false)
 const selectedCustomer = ref(null)
-
-// Computed properties
-const filteredCustomers = computed(() => {
-  let filtered = customersData.value
-
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(customer =>
-      customer.name?.toLowerCase().includes(search) ||
-      customer.email?.toLowerCase().includes(search) ||
-      customer.phone?.toLowerCase().includes(search) ||
-      customer.source?.toLowerCase().includes(search)
-    )
-  }
-
-  if (statusFilter.value) {
-    if (statusFilter.value === 'assigned-pending') {
-      // Özel filtre: status is_first olan ve relevantUser'ı dolu olanlar
-      filtered = filtered.filter(customer => {
-        const customerStatus = statusMap.value[customer.status] || customer.status_info || customer.statusInfo
-        const hasFirstStatus = customerStatus?.isFirst || customerStatus?.is_first
-        const hasRelevantUser = customer.relevantUser ||
-                                customer.relevent_user ||
-                                customer.relevantUserId ||
-                                customer.relevant_user_id
-        return hasFirstStatus && hasRelevantUser
-      })
-    } else {
-      filtered = filtered.filter(customer => customer.status === statusFilter.value)
-    }
-  }
-
-  return filtered
-})
 
 const visiblePages = computed(() => {
   const pages = []
@@ -518,16 +473,33 @@ const visiblePages = computed(() => {
 })
 
 // Methods
+const loadCustomers = async (page = 1) => {
+  await customersStore.fetchCustomers({
+    page,
+    search: searchTerm.value || undefined,
+    status: statusFilter.value
+  })
+}
+
 const resetFilters = () => {
   searchTerm.value = ''
-  statusFilter.value = ''
+  statusFilter.value = undefined
 }
 
 const changePage = (page) => {
   if (page >= 1 && page <= pagination.value.totalPages) {
-    customersStore.fetchCustomers(page)
+    loadCustomers(page)
   }
 }
+
+// Watch for search term and status changes with debounce
+watchDebounced(
+  [searchTerm, statusFilter],
+  () => {
+    loadCustomers(1) // Reset to page 1 when searching or filtering
+  },
+  { debounce: 500 }
+)
 
 const confirmDelete = (customer) => {
   customerToDelete.value = customer
@@ -570,21 +542,12 @@ const showFiles = (customer) => {
 const handleDelete = async () => {
   if (customerToDelete.value) {
     try {
-      const api = useApi()
-      
-      // First remove from local state for immediate feedback
-      const customerId = customerToDelete.value.id
-      customersData.value = customersData.value.filter(
-        c => c.id !== customerId
-      )
-      
-      // Then sync with API in background
-      await api(`/customers/${customerId}`, {
-        method: 'DELETE'
-      })
+      await customersStore.deleteCustomer(customerToDelete.value.id)
+      await loadCustomers(pagination.value.page)
+      useToast().success('Müşteri başarıyla silindi')
     } catch (error) {
       console.error('Error deleting customer:', error)
-      // Customer is already removed from local state, so no need to revert
+      useToast().error('Müşteri silinirken bir hata oluştu')
     }
   }
   showDeleteModal.value = false
@@ -592,15 +555,9 @@ const handleDelete = async () => {
 }
 
 // Handle customer creation
-const handleCustomerCreated = (customer) => {
-  // Add to beginning of customers list for immediate visibility
-  customersData.value.unshift({
-    ...customer,
-    name: `${customer.name || ''} ${customer.surname || ''}`.trim() || 'İsimsiz',
-    status: customer.status || 'new',
-    source: customer.source || '-',
-    isActive: customer.isActive !== undefined ? customer.isActive : true
-  })
+const handleCustomerCreated = async (customer) => {
+  await loadCustomers(pagination.value.page)
+  useToast().success('Müşteri başarıyla oluşturuldu')
 }
 
 const formatDate = (dateString) => {
@@ -686,48 +643,10 @@ onMounted(async () => {
       console.error('Failed to load statuses:', statusError)
     }
 
-    // Load customers with role-based filters
-    const filters = getCustomerFilters()
-
-    const response = await api('/customers', {
-      query: filters
-    })
-
-    if (Array.isArray(response)) {
-      // Direct array response from backend
-      const mappedCustomers = response.map(customer => {
-        // Status bilgisini statusMap'ten al ve customer'a ekle
-        const customerStatusId = customer.statusId || customer.status
-        const statusInfo = statusMap.value[customerStatusId]
-
-        // Map user IDs to user objects
-        const userIdValue = customer.userId || customer.user_id || (typeof customer.user === 'object' ? customer.user?.id : customer.user)
-        const relevantUserIdValue = customer.relevantUserId || customer.relevant_user_id || customer.relevent_user || (typeof customer.relevantUser === 'object' ? customer.relevantUser?.id : customer.relevantUser)
-
-        return {
-          ...customer,
-          name: `${customer.name || ''} ${customer.surname || ''}`.trim() || 'İsimsiz',
-          status: customerStatusId, // Use statusId if available
-          status_info: statusInfo, // Status bilgisini ekle
-          statusInfo: statusInfo, // Alternatif field name için
-          source: customer.source || '-',
-          isActive: customer.isActive !== undefined ? customer.isActive : true,
-          user: usersMap.value[userIdValue] || (typeof customer.user === 'object' ? customer.user : null),
-          relevantUser: usersMap.value[relevantUserIdValue] || (typeof customer.relevantUser === 'object' ? customer.relevantUser : null)
-        }
-      })
-
-      // Client-side filter as fallback (in case backend doesn't support filters yet)
-      customersData.value = mappedCustomers.filter(customer => {
-        return canAccessCustomer(customer)
-      })
-    } else {
-      customersData.value = (response.data || []).filter(customer => canAccessCustomer(customer))
-    }
+    // Load customers
+    await loadCustomers()
   } catch (error) {
     console.error('Failed to load data:', error)
-  } finally {
-    loading.value = false
   }
 })
 

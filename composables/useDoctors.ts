@@ -41,32 +41,62 @@ export const useDoctors = () => {
   const allDoctors = ref<Doctor[]>([]) // Store all doctors for search
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const meta = ref({
+    page: 1,
+    limit: 20,
+    total: 0
+  })
 
-  const fetchDoctors = async () => {
+  const fetchDoctors = async (params?: {
+    page?: number
+    limit?: number
+    search?: string
+    order?: 'ASC' | 'DESC'
+  }) => {
     loading.value = true
     error.value = null
     try {
-      const response: any = await $api('/doctors', {
-        params: {
-          page: 1,
-          limit: 10000 // Fetch all doctors at once
-        }
-      })
+      // Build query parameters
+      const queryParams = new URLSearchParams()
+      queryParams.append('page', (params?.page || 1).toString())
+      queryParams.append('limit', (params?.limit || 20).toString())
+      if (params?.search) {
+        queryParams.append('search', params.search)
+      }
+      if (params?.order) {
+        queryParams.append('order', params.order)
+      }
+
+      const url = `/doctors?${queryParams.toString()}`
+      const response: any = await $api(url)
 
       // API returns { data: [...], meta: {...} }
       if (response && response.data && Array.isArray(response.data)) {
-        allDoctors.value = response.data
         doctors.value = response.data
+        allDoctors.value = response.data
+        if (response.meta) {
+          meta.value = {
+            page: response.meta.page || 1,
+            limit: response.meta.limit || 20,
+            total: response.meta.total || 0
+          }
+        }
       } else if (Array.isArray(response)) {
-        allDoctors.value = response
         doctors.value = response
+        allDoctors.value = response
+        // If response is just an array, assume all data is loaded
+        meta.value = {
+          page: 1,
+          limit: response.length,
+          total: response.length
+        }
       } else {
         console.warn('Unexpected doctors response structure:', response)
         allDoctors.value = []
         doctors.value = []
       }
 
-      return allDoctors.value
+      return { data: doctors.value, meta: meta.value }
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch doctors'
       allDoctors.value = []
@@ -162,6 +192,7 @@ export const useDoctors = () => {
     allDoctors,
     loading,
     error,
+    meta,
     fetchDoctors,
     fetchDoctor,
     createDoctor,
