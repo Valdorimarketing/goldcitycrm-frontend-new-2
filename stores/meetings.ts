@@ -23,31 +23,56 @@ export const useMeetingsStore = defineStore('meetings', () => {
     try {
       const config = useRuntimeConfig()
       const query: any = { page, limit, ...filters }
-      
-      const response = await $fetch<PaginatedResponse<Meeting>>('/meetings', {
+
+      const response = await $fetch<any>('/meetings', {
         baseURL: config.public.apiBase,
         query,
         headers: {
           Authorization: `Bearer ${useCookie('auth-token').value}`
         }
       })
-      
-      // Eğer response direkt array ise
+
+      // Handle different response formats
       if (Array.isArray(response)) {
+        // Response is directly an array
         meetings.value = response
-      } else if (response.data) {
+        pagination.value = {
+          total: response.length,
+          page: page,
+          limit: limit,
+          totalPages: 1
+        }
+      } else if (response.data && Array.isArray(response.data)) {
+        // Response has data property
         meetings.value = response.data
+        pagination.value = {
+          total: response.total || response.data.length,
+          page: response.page || page,
+          limit: response.limit || limit,
+          totalPages: response.totalPages || Math.ceil((response.total || response.data.length) / limit)
+        }
+      } else {
+        // Unknown format
+        meetings.value = []
+        pagination.value = {
+          total: 0,
+          page: page,
+          limit: limit,
+          totalPages: 0
+        }
       }
-      
-      pagination.value = {
-        total: response.total || 0,
-        page: response.page || 1,
-        limit: response.limit || 10,
-        totalPages: response.totalPages || 1
-      }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching meetings:', error)
-      throw error
+      console.error('Error details:', error?.data, error?.statusCode, error?.message)
+
+      // Set empty values on error
+      meetings.value = []
+      pagination.value = {
+        total: 0,
+        page: page,
+        limit: limit,
+        totalPages: 0
+      }
     } finally {
       loading.value = false
     }

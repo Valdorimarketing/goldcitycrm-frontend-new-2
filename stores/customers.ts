@@ -8,26 +8,59 @@ export const useCustomersStore = defineStore('customers', () => {
   const pagination = ref({
     total: 0,
     page: 1,
-    limit: 10,
+    limit: 20,
     totalPages: 0
   })
 
   // Get all customers
-  const fetchCustomers = async (page = 1, limit = 10, filters: any = {}) => {
-    console.log('[Store] fetchCustomers called with:', { page, limit, filters })
+  const fetchCustomers = async (pageOrParams?: number | {
+    page?: number
+    limit?: number
+    search?: string
+    status?: number
+    isActive?: boolean
+    order?: 'ASC' | 'DESC'
+  }, limitParam?: number, filtersParam?: any) => {
     loading.value = true
-    try {
-      console.log('[Store] Getting config...')
-      const config = useRuntimeConfig()
-      console.log('[Store] Config apiBase:', config.public.apiBase)
 
-      const queryParams: any = { page, limit, ...filters }
-      console.log('[Store] Query params:', queryParams)
+    try {
+      const config = useRuntimeConfig()
+
+      // Build query parameters - support both old and new API
+      let queryParams: any
+
+      if (typeof pageOrParams === 'number') {
+        // Old API: fetchCustomers(page, limit, filters)
+        queryParams = {
+          page: pageOrParams || 1,
+          limit: limitParam || 20,
+          ...(filtersParam || {})
+        }
+      } else if (typeof pageOrParams === 'object' && pageOrParams !== null) {
+        // New API: fetchCustomers({ page, limit, search, ... })
+        const page = pageOrParams.page || 1
+        const limit = pageOrParams.limit || 20
+
+        queryParams = { page, limit }
+        if (pageOrParams.search) {
+          queryParams.search = pageOrParams.search
+        }
+        if (pageOrParams.status !== undefined) {
+          queryParams.status = pageOrParams.status
+        }
+        if (pageOrParams.isActive !== undefined) {
+          queryParams.isActive = pageOrParams.isActive
+        }
+        if (pageOrParams.order) {
+          queryParams.order = pageOrParams.order
+        }
+      } else {
+        // No params, use defaults
+        queryParams = { page: 1, limit: 20 }
+      }
 
       const token = useCookie('auth-token').value
-      console.log('[Store] Token exists:', !!token)
 
-      console.log('[Store] Calling API...')
       const response = await $fetch<any>('/customers', {
         baseURL: config.public.apiBase,
         query: queryParams,
@@ -35,8 +68,6 @@ export const useCustomersStore = defineStore('customers', () => {
           Authorization: `Bearer ${token}`
         }
       })
-
-      console.log('[Store] Customers API Response:', response)
 
       // Handle different response formats
       if (Array.isArray(response)) {
@@ -49,13 +80,22 @@ export const useCustomersStore = defineStore('customers', () => {
           totalPages: 1
         }
       } else if (response.data && Array.isArray(response.data)) {
-        // Response has data property
+        // Response has data property with meta
         customers.value = response.data
-        pagination.value = {
-          total: response.total || response.data.length,
-          page: response.page || page,
-          limit: response.limit || limit,
-          totalPages: response.totalPages || Math.ceil((response.total || response.data.length) / limit)
+        if (response.meta) {
+          pagination.value = {
+            total: response.meta.total || 0,
+            page: response.meta.page || page,
+            limit: response.meta.limit || limit,
+            totalPages: Math.ceil((response.meta.total || 0) / (response.meta.limit || limit))
+          }
+        } else {
+          pagination.value = {
+            total: response.total || response.data.length,
+            page: response.page || page,
+            limit: response.limit || limit,
+            totalPages: response.totalPages || Math.ceil((response.total || response.data.length) / limit)
+          }
         }
       } else {
         // Unknown format

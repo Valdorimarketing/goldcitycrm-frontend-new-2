@@ -57,6 +57,7 @@
                     <input
                       ref="fileInput"
                       type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
                       @change="handleFileSelect"
                       class="block w-full text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none"
                     />
@@ -221,6 +222,17 @@ const fetchFiles = async () => {
 const handleFileSelect = (event) => {
   const file = event.target.files[0]
   if (file) {
+    // Check file type
+    const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg']
+    const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg']
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase()
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      alert('Sadece PDF, PNG ve JPG dosyaları yüklenebilir.')
+      event.target.value = ''
+      return
+    }
+
     selectedFile.value = file
   }
 }

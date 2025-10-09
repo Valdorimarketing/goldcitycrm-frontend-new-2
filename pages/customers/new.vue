@@ -148,9 +148,13 @@
                 <input
                   v-model="form.phone"
                   type="tel"
+                  @input="formatPhoneNumber"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="5XX XXX XX XX"
+                  :class="{ 'border-red-300': errors.phone }"
+                  placeholder="(5xx) xxx xx xx"
+                  maxlength="16"
                 />
+                <p v-if="errors.phone" class="mt-1 text-sm text-red-600">{{ errors.phone }}</p>
               </div>
             </div>
 
@@ -164,8 +168,10 @@
                   v-model="form.website"
                   type="url"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  :class="{ 'border-red-300': errors.website }"
                   placeholder="https://www.example.com"
                 />
+                <p v-if="errors.website" class="mt-1 text-sm text-red-600">{{ errors.website }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -308,16 +314,12 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   Mahalle
                 </label>
-                <select
+                <input
                   v-model="form.district"
+                  type="text"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  :disabled="!form.city"
-                >
-                  <option value="">Mahalle seçiniz</option>
-                  <option v-for="district in filteredDistricts" :key="district.id" :value="district.id">
-                    {{ district.name }}
-                  </option>
-                </select>
+                  placeholder="Mahalle adı giriniz"
+                />
               </div>
             </div>
 
@@ -438,7 +440,6 @@ const errors = ref({})
 const countries = ref([])
 const states = ref([])
 const cities = ref([])
-const districts = ref([])
 const sources = ref([])
 const statuses = ref([])
 const users = ref([])
@@ -480,10 +481,6 @@ const filteredCities = computed(() => {
   return form.state ? cities.value.filter(c => c.state === parseInt(form.state)) : []
 })
 
-const filteredDistricts = computed(() => {
-  return form.city ? districts.value.filter(d => d.city === parseInt(form.city)) : []
-})
-
 // Location change handlers
 const onCountryChange = () => {
   form.state = ''
@@ -505,13 +502,12 @@ const loadDropdownData = async () => {
   try {
     loading.value = true
     const api = useApi()
-    
+
     // Paralel API çağrıları
     const [
       countriesRes,
       statesRes,
       citiesRes,
-      districtsRes,
       sourcesRes,
       statusesRes,
       usersRes,
@@ -520,17 +516,15 @@ const loadDropdownData = async () => {
       api('/countries').catch(() => []),
       api('/states').catch(() => []),
       api('/cities').catch(() => []),
-      api('/districts').catch(() => []),
       api('/sources').catch(() => []),
       api('/statuses').catch(() => []),
       api('/users').catch(() => []),
       api('/customers').catch(() => [])
     ])
-    
+
     countries.value = countriesRes
     states.value = statesRes
     cities.value = citiesRes
-    districts.value = districtsRes
     sources.value = sourcesRes
     statuses.value = statusesRes
     users.value = usersRes.data || usersRes
@@ -544,24 +538,57 @@ const loadDropdownData = async () => {
   }
 }
 
+// Format phone number to (5xx) xxx xx xx
+const formatPhoneNumber = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+
+  if (value.length > 0) {
+    if (value.length <= 3) {
+      value = `(${value}`
+    } else if (value.length <= 6) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3)}`
+    } else if (value.length <= 8) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6)}`
+    } else {
+      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)} ${value.slice(6, 8)} ${value.slice(8, 10)}`
+    }
+  }
+
+  form.phone = value
+}
+
 // Validate form
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!form.name.trim()) {
     errors.value.name = 'Ad alanı zorunludur.'
   }
-  
+
   if (!form.surname.trim()) {
     errors.value.surname = 'Soyad alanı zorunludur.'
   }
-  
+
   if (!form.email.trim()) {
     errors.value.email = 'E-posta alanı zorunludur.'
   } else if (!/\S+@\S+\.\S+/.test(form.email)) {
     errors.value.email = 'Geçerli bir e-posta adresi giriniz.'
   }
-  
+
+  if (form.phone?.trim()) {
+    const phoneDigits = form.phone.replace(/\D/g, '')
+    if (phoneDigits.length !== 10 || !phoneDigits.startsWith('5')) {
+      errors.value.phone = 'Telefon numarası (5xx) xxx xx xx formatında olmalıdır'
+    }
+  }
+
+  if (form.website?.trim()) {
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    if (!urlPattern.test(form.website.trim())) {
+      errors.value.website = 'Geçerli bir web adresi giriniz (örn: https://www.example.com)'
+    }
+  }
+
   return Object.keys(errors.value).length === 0
 }
 
