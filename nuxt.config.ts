@@ -10,10 +10,14 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.VUE_APP_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3001'
+      apiBase: process.env.VUE_APP_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3001',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
   },
   app: {
+    // Cloudflare Flexible SSL için base URL
+    baseURL: '/',
+    cdnURL: process.env.NUXT_PUBLIC_SITE_URL || undefined,
     head: {
       title: 'Valdori CRM',
       meta: [
@@ -33,5 +37,9 @@ export default defineNuxtConfig({
   },
   imports: {
     dirs: ['stores', 'composables']
+  },
+  // Cloudflare için gerekli
+  nitro: {
+    preset: 'node-server'
   }
 })
