@@ -55,45 +55,6 @@
       </div>
     </div>
 
-    <!-- User Assignment (only show on unassigned tab) -->
-    <div v-if="activeTab === 'unassigned'" class="card mb-6">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="sm:col-span-2 relative">
-          <label for="user-select" class="block text-sm font-medium text-gray-700 mb-2">
-            Kullanıcı Seç
-          </label>
-          <input
-            id="user-select"
-            v-model="userSearch"
-            type="text"
-            class="form-input"
-            placeholder="Kullanıcı ara..."
-            @focus="showUserDropdown = true"
-            @blur="hideUserDropdown"
-          />
-          <div v-if="showUserDropdown && filteredUsers.length > 0" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700 max-h-60 overflow-auto">
-            <button
-              v-for="user in filteredUsers"
-              :key="user.id"
-              @mousedown.prevent="selectUser(user)"
-              class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-900 dark:text-gray-100"
-            >
-              {{ user.name }} ({{ user.email }})
-            </button>
-          </div>
-        </div>
-        <div class="flex items-end">
-          <button
-            @click="assignSelectedCustomers"
-            :disabled="!selectedUser || selectedCustomers.length === 0"
-            class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Seçili Olanları Ata ({{ selectedCustomers.length }})
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -358,7 +319,7 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6">
         <div class="flex flex-1 justify-between sm:hidden">
           <button
             :disabled="pagination.page === 1"
@@ -377,7 +338,7 @@
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
               <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span>
               -
               <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
@@ -537,7 +498,7 @@ const loading = ref(true)
 const pagination = ref({
   total: 0,
   page: 1,
-  limit: 10,
+  limit: 50,
   totalPages: 0
 })
 
@@ -545,6 +506,7 @@ const customersData = ref([])
 
 // Tab state - read from URL query parameter
 const route = useRoute()
+const router = useRouter()
 const activeTab = ref(route.query.tab || 'unassigned')
 
 // Search and filters
@@ -590,33 +552,8 @@ const selectedCustomer = ref(null)
 const filteredCustomers = computed(() => {
   let filtered = customersData.value
 
-  // Tab filter - filter based on active tab
-  // Note: customersData already contains only is_first=true customers
-  if (activeTab.value === 'unassigned') {
-    // Show customers with no relevantUser (null, undefined, empty string, or empty object)
-    filtered = filtered.filter(customer => {
-      const ru = customer.relevantUser
-      // Check if relevantUser is truly empty
-      const isEmpty = ru === null ||
-                     ru === undefined ||
-                     ru === '' ||
-                     (typeof ru === 'object' && Object.keys(ru).length === 0)
-
-      return isEmpty
-    })
-  } else if (activeTab.value === 'assigned') {
-    // Show customers with relevantUser exists and has data
-    filtered = filtered.filter(customer => {
-      const ru = customer.relevantUser
-      // Check if relevantUser has actual data
-      const hasData = ru !== null &&
-                     ru !== undefined &&
-                     ru !== '' &&
-                     !(typeof ru === 'object' && Object.keys(ru).length === 0)
-
-      return hasData
-    })
-  }
+  // Backend already filters by isFirst and hasRelevantUser
+  // We only need to apply column filters here
 
   // Column filters
   if (columnFilters.value.name) {
@@ -753,18 +690,13 @@ const assignSelectedCustomers = async () => {
 
     await Promise.all(updatePromises)
 
-    // Update local state - update relevantUser for assigned customers
-    selectedCustomers.value.forEach(customerId => {
-      const customerIndex = customersData.value.findIndex(c => c.id === customerId)
-      if (customerIndex !== -1) {
-        customersData.value[customerIndex].relevantUser = selectedUser.value
-      }
-    })
-
     // Reset selections
     selectedCustomers.value = []
     selectedUser.value = null
     userSearch.value = ''
+
+    // Refetch customers to update the list
+    await fetchCustomers(pagination.value.page)
 
     console.log('Customers assigned successfully')
   } catch (error) {
@@ -824,19 +756,91 @@ const assignCustomerToUser = async (customer) => {
       }
     })
 
-    // Update customer in local state with the new relevantUser
-    const customerIndex = customersData.value.findIndex(c => c.id === customer.id)
-    if (customerIndex !== -1) {
-      const selectedUserObj = users.value.find(u => u.id === userId)
-      customersData.value[customerIndex].relevantUser = selectedUserObj
-    }
-
     // Clear row assignment
     delete rowAssignments.value[customer.id]
+
+    // Refetch customers to update the list
+    await fetchCustomers(pagination.value.page)
 
     console.log('Customer assigned successfully')
   } catch (error) {
     console.error('Error assigning customer:', error)
+  }
+}
+
+// Fetch customers based on active tab
+const fetchCustomers = async (page = 1) => {
+  try {
+    loading.value = true
+    const api = useApi()
+
+    const queryParams = {
+      isFirst: true,
+      page: page,
+      limit: pagination.value.limit
+    }
+
+    // Explicitly set hasRelevantUser based on active tab
+    if (activeTab.value === 'unassigned') {
+      queryParams.hasRelevantUser = false
+    } else if (activeTab.value === 'assigned') {
+      queryParams.hasRelevantUser = true
+    }
+
+    console.log('Fetching customers with params:', queryParams)
+
+    const response = await api('/customers', {
+      query: queryParams
+    })
+
+    // Handle both array and {data, meta} response formats
+    const customersArray = Array.isArray(response) ? response : (response.data || [])
+    const meta = response.meta || {}
+
+    // Map customers with proper structure
+    customersData.value = customersArray.map(customer => {
+      // Map user IDs to user objects
+      const userId = customer.userId || customer.user_id || customer.user
+      const relevantUserId = customer.relevantUserId || customer.relevant_user_id || customer.relevent_user || customer.relevantUser
+
+      // Parse relevantUser correctly - handle both ID and object cases
+      let relevantUserObj = null
+      if (relevantUserId !== null && relevantUserId !== undefined) {
+        if (typeof relevantUserId === 'object') {
+          // Already an object
+          relevantUserObj = relevantUserId
+        } else {
+          // It's an ID, look it up in usersMap
+          relevantUserObj = usersMap.value[relevantUserId]
+        }
+      }
+
+      return {
+        ...customer,
+        name: `${customer.name || ''} ${customer.surname || ''}`.trim() || 'İsimsiz',
+        source: customer.source || '-',
+        isActive: customer.isActive !== undefined ? customer.isActive : true,
+        user: usersMap.value[userId] || customer.user,
+        relevantUser: relevantUserObj
+      }
+    })
+
+    // Update pagination
+    pagination.value = {
+      total: meta.total || customersArray.length,
+      page: meta.page || page,
+      limit: meta.limit || pagination.value.limit,
+      totalPages: meta.totalPages || Math.ceil((meta.total || customersArray.length) / pagination.value.limit)
+    }
+
+    // Initialize row assignments for each customer
+    customersData.value.forEach(customer => {
+      initializeRowAssignment(customer.id)
+    })
+  } catch (error) {
+    console.error('Failed to load customers:', error)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -852,7 +856,7 @@ const resetFilters = () => {
 
 const changePage = (page) => {
   if (page >= 1 && page <= pagination.value.totalPages) {
-    customersStore.fetchCustomers(page)
+    fetchCustomers(page)
   }
 }
 
@@ -900,22 +904,18 @@ const handleDelete = async () => {
   if (customerToDelete.value) {
     try {
       const api = useApi()
-
-      // First remove from local state for immediate feedback
       const customerId = customerToDelete.value.id
-      customersData.value = customersData.value.filter(
-        c => c.id !== customerId
-      )
 
-      // Then sync with API in background
       await api(`/customers/${customerId}`, {
         method: 'DELETE'
       })
 
+      // Refetch customers after deletion
+      await fetchCustomers(pagination.value.page)
+
       console.log('Customer deleted successfully')
     } catch (error) {
-      console.error('Error deleting customer (using demo mode):', error)
-      // Customer is already removed from local state, so no need to revert
+      console.error('Error deleting customer:', error)
     }
   }
   showDeleteModal.value = false
@@ -923,20 +923,11 @@ const handleDelete = async () => {
 }
 
 // Handle customer creation
-const handleCustomerCreated = (customer) => {
+const handleCustomerCreated = async (customer) => {
   console.log('New customer created:', customer)
-  // Add to beginning of customers list for immediate visibility
-  const newCustomer = {
-    ...customer,
-    name: `${customer.name || ''} ${customer.surname || ''}`.trim() || 'İsimsiz',
-    status: customer.status || 'new',
-    source: customer.source || '-',
-    isActive: customer.isActive !== undefined ? customer.isActive : true
-  }
-  customersData.value.unshift(newCustomer)
 
-  // Initialize row assignment for new customer
-  initializeRowAssignment(newCustomer.id)
+  // Refetch customers to show the new one
+  await fetchCustomers(1)
 }
 
 const formatDate = (dateString) => {
@@ -1038,7 +1029,7 @@ onMounted(async () => {
       console.error('Failed to load user groups:', groupsError)
     }
 
-    // Load statuses first
+    // Load statuses
     try {
       const statusResponse = await api('/statuses')
 
@@ -1060,78 +1051,23 @@ onMounted(async () => {
       console.error('Failed to load statuses:', statusError)
     }
 
-    // Load customers with isFirst status (admin only page)
-    // Get all statuses with isFirst=true and fetch customers for those statuses
-    const firstStatusIds = Object.values(statusMap.value)
-      .filter(s => s.isFirst === true)
-      .map(s => s.id)
-
-    // Fetch ALL customers with isFirst status (status=1)
-    const response = await api('/customers', {
-      query: {
-        status: firstStatusIds[0],  // Filter by status (usually 1 for "Yeni")
-        limit: 10000  // High limit to get all pool data customers
-      }
-    })
-
-    // Handle both array and {data, meta} response formats
-    const customersArray = Array.isArray(response) ? response : (response.data || [])
-
-    if (customersArray.length > 0) {
-      // Filter customers to only show those with is_new status
-      const allCustomers = customersArray.map(customer => {
-        // Map user IDs to user objects
-        const userId = customer.userId || customer.user_id || customer.user
-        const relevantUserId = customer.relevantUserId || customer.relevant_user_id || customer.relevent_user || customer.relevantUser
-
-        // Parse relevantUser correctly - handle both ID and object cases
-        let relevantUserObj = null
-        if (relevantUserId !== null && relevantUserId !== undefined) {
-          if (typeof relevantUserId === 'object') {
-            // Already an object
-            relevantUserObj = relevantUserId
-          } else {
-            // It's an ID, look it up in usersMap
-            relevantUserObj = usersMap.value[relevantUserId]
-          }
-        }
-
-        // Determine status ID from various possible fields
-        const statusId = customer.statusId || customer.status_id || customer.status
-
-        return {
-          ...customer,
-          name: `${customer.name || ''} ${customer.surname || ''}`.trim() || 'İsimsiz',
-          status: statusId,
-          source: customer.source || '-',
-          isActive: customer.isActive !== undefined ? customer.isActive : true,
-          user: usersMap.value[userId] || customer.user,
-          relevantUser: relevantUserObj
-        }
-      })
-
-      // Filter to only include customers with status that has is_first flag
-      // Admin-only page: show all customers with isFirst=true status
-      customersData.value = allCustomers.filter(customer => {
-        const status = statusMap.value[customer.status]
-        return status?.isFirst === true
-      })
-
-      // Initialize row assignments for each customer
-      customersData.value.forEach(customer => {
-        initializeRowAssignment(customer.id)
-      })
-    }
+    // Fetch customers based on active tab
+    await fetchCustomers(1)
   } catch (error) {
     console.error('Failed to load data:', error)
-  } finally {
     loading.value = false
   }
 })
 
-// Watch tab changes and reset filters
-watch(activeTab, () => {
+// Watch tab changes and refetch data
+watch(activeTab, async (newTab) => {
+  // Update URL query parameter
+  router.push({ query: { tab: newTab } })
+
+  // Reset filters and fetch new data
   resetFilters()
+  pagination.value.page = 1
+  await fetchCustomers(1)
 })
 
 // Page head

@@ -8,7 +8,7 @@
           Tüm müşterilerinizi buradan yönetebilirsiniz.
         </p>
       </div>
-      <div class="mt-4 sm:mt-0">
+      <div v-if="authStore.user?.role !== 'user'" class="mt-4 sm:mt-0">
         <button
           @click="showCreateModal = true"
           class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
@@ -123,7 +123,9 @@
                 <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.user?.name || '-' }}</div>
               </td>
               <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.relevantUser?.name || '-' }}</div>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ customer.relevantUser ? `${customer.relevantUser.name || ''} ${customer.relevantUser.surname || ''}`.trim() : '-' }}
+                </div>
               </td>
               <td class="table-cell">
                 <span
@@ -425,6 +427,8 @@ definePageMeta({
   // middleware: 'auth' // Temporarily disabled
 })
 
+const authStore = useAuthStore()
+
 // Permissions
 const { getCustomerFilters, canAccessCustomer, userId } = usePermissions()
 
@@ -434,7 +438,29 @@ const { customers: allCustomers, loading, pagination } = storeToRefs(customersSt
 
 // Filtered customers based on access permissions
 const customers = computed(() => {
-  return allCustomers.value.filter(customer => canAccessCustomer(customer))
+  // Add statusInfo and relevantUser to each customer
+  return allCustomers.value.map(customer => {
+    // Parse relevantUser ID from various possible field names
+    const relevantUserId = customer.relevantUserId || customer.relevant_user_id || customer.relevent_user || customer.relevantUser
+
+    // Get the user object from usersMap
+    let relevantUserObj = null
+    if (relevantUserId !== null && relevantUserId !== undefined) {
+      if (typeof relevantUserId === 'object') {
+        // Already an object
+        relevantUserObj = relevantUserId
+      } else {
+        // It's an ID, look it up in usersMap
+        relevantUserObj = usersMap.value[relevantUserId]
+      }
+    }
+
+    return {
+      ...customer,
+      statusInfo: statusMap.value[customer.status],
+      relevantUser: relevantUserObj
+    }
+  }).filter(customer => canAccessCustomer(customer))
 })
 
 // Search and filters
