@@ -31,7 +31,7 @@
               type="text"
               class="form-input"
               :class="{ 'border-red-500': errors.customer }"
-              placeholder="Musteri adi yazin..."
+              placeholder="En az 3 harf yazarak musteri arayın..."
               @focus="showCustomerDropdown = true"
               @blur="hideCustomerDropdown"
             />
@@ -47,6 +47,36 @@
               </button>
             </div>
             <p v-if="errors.customer" class="mt-1 text-sm text-red-600">{{ errors.customer }}</p>
+          </div>
+
+          <!-- Sales Product Selection (shown after customer is selected) -->
+          <div v-if="form.customer">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Hangi Urun Icin Gorusme?
+            </label>
+
+            <div v-if="loadingCustomerProducts" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Urunler yukleniyor...
+            </div>
+
+            <div v-else-if="customerSalesProducts.length === 0" class="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-md">
+              Bu kullaniciya herhangi bir hizmet satilmamis
+            </div>
+
+            <select
+              v-else
+              v-model="form.salesProductId"
+              class="form-input"
+            >
+              <option value="">Urun secin...</option>
+              <option v-for="product in customerSalesProducts" :key="product.id" :value="product.id">
+                {{ product.name }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
@@ -172,27 +202,6 @@
         </div>
       </div>
 
-      <!-- Satis Urunu (Opsiyonel) -->
-      <div class="card">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Satis Bilgileri (Opsiyonel)</h2>
-        <div class="grid grid-cols-1 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Satis Urunu
-            </label>
-            <select
-              v-model="form.salesProductId"
-              class="form-input"
-            >
-              <option value="">Satis urunu secin...</option>
-              <option v-for="product in salesProducts" :key="product.id" :value="product.id">
-                {{ product.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <!-- Aciklama -->
       <div class="card">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Aciklama</h2>
@@ -252,11 +261,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // Composables
-const { createMeeting, loading: meetingLoading } = useMeetings()
+const { createMeeting } = useMeetings()
 const { hospitals, fetchHospitals } = useHospitals()
-const { doctors, fetchDoctors } = useDoctors()
+const { fetchDoctors } = useDoctors()
 const { statuses: meetingStatuses, fetchMeetingStatuses } = useMeetingStatuses()
-const { products: salesProducts, fetchProducts } = useProducts()
 
 // Form state
 const form = ref({
@@ -275,6 +283,8 @@ const errors = ref({})
 const loading = ref(false)
 const customers = ref([])
 const hospitalDoctors = ref([]) // Doctors from selected hospital
+const customerSalesProducts = ref([]) // Sales products for selected customer
+const loadingCustomerProducts = ref(false)
 
 // Search states
 const customerSearch = ref('')
@@ -284,16 +294,44 @@ const showCustomerDropdown = ref(false)
 const showHospitalDropdown = ref(false)
 const showDoctorDropdown = ref(false)
 
-// Computed - Filter customers by search
+// Computed - Return customers from API
 const filteredCustomers = computed(() => {
-  if (!customerSearch.value) {
-    return customers.value
+  return customers.value
+})
+
+// Watch customerSearch and fetch from API with debounce
+const searchTimeout = ref(null)
+watch(customerSearch, (newValue) => {
+  // Clear timeout
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value)
+    searchTimeout.value = null
   }
-  const search = customerSearch.value.toLowerCase()
-  return customers.value.filter(customer => {
-    const fullName = `${customer.name} ${customer.surname}`.toLowerCase()
-    return fullName.includes(search)
-  })
+
+  // Clear customers and reset form if less than 3 characters
+  if (!newValue || newValue.length < 3) {
+    customers.value = []
+    // Reset customer selection if search is cleared
+    if (!newValue) {
+      form.value.customer = ''
+      form.value.salesProductId = ''
+      customerSalesProducts.value = []
+    }
+    return
+  }
+
+  // Debounce API call
+  searchTimeout.value = setTimeout(() => {
+    fetchCustomers(newValue)
+    searchTimeout.value = null
+  }, 300) // 300ms debounce
+})
+
+// Cleanup on unmount
+onBeforeUnmount(() => {
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value)
+  }
 })
 
 // Computed - Filter hospitals by search
@@ -327,10 +365,16 @@ const filteredDoctorsForSearch = computed(() => {
 })
 
 // Select methods
-const selectCustomer = (customer) => {
+const selectCustomer = async (customer) => {
   form.value.customer = customer.id
   customerSearch.value = `${customer.name} ${customer.surname}`
   showCustomerDropdown.value = false
+
+  // Reset sales product when customer changes
+  form.value.salesProductId = ''
+
+  // Fetch sales products for this customer
+  await fetchCustomerSalesProducts(customer.id)
 }
 
 const selectHospital = async (hospital) => {
@@ -379,14 +423,55 @@ const hideDoctorDropdown = () => {
   }, 200)
 }
 
-// Fetch all required data
-const fetchCustomers = async () => {
+// Fetch customers with search query
+const fetchCustomers = async (search = '') => {
   try {
     const api = useApi()
-    const response = await api('/customers')
+    const params = new URLSearchParams({
+      search: search,
+      page: '1',
+      limit: '50'
+    })
+    const response = await api(`/customers?${params.toString()}`)
     customers.value = Array.isArray(response) ? response : (response.data || [])
   } catch (err) {
     console.error('Failed to fetch customers:', err)
+    customers.value = []
+  }
+}
+
+// Fetch sales products for selected customer
+const fetchCustomerSalesProducts = async (customerId) => {
+  if (!customerId) {
+    customerSalesProducts.value = []
+    return
+  }
+
+  loadingCustomerProducts.value = true
+  try {
+    const api = useApi()
+    console.log('Fetching sales products for customer:', customerId)
+    const response = await api(`/sales/customer/${customerId}/products`)
+    console.log('Raw API response:', response)
+
+    // Parse response - map to include product name from productDetails
+    const products = Array.isArray(response) ? response : (response.data || [])
+
+    customerSalesProducts.value = products.map(item => ({
+      id: item.id, // sales-product relation ID
+      name: item.productDetails?.name || 'Bilinmeyen Ürün',
+      price: item.totalPrice || item.price,
+      productId: item.product,
+      salesId: item.sales
+    }))
+
+    console.log(`Loaded ${customerSalesProducts.value.length} sales products for customer ${customerId}`, customerSalesProducts.value)
+  } catch (err) {
+    console.error('Failed to fetch customer sales products:', err)
+    console.error('Error details:', err.response || err)
+    customerSalesProducts.value = []
+  } finally {
+    loadingCustomerProducts.value = false
   }
 }
 
@@ -454,11 +539,9 @@ const handleSubmit = async () => {
 onMounted(async () => {
   try {
     await Promise.all([
-      fetchCustomers(),
       fetchHospitals({ limit: 1000 }),
       fetchDoctors({ limit: 1000 }),
-      fetchMeetingStatuses(),
-      fetchProducts({ limit: 1000 })
+      fetchMeetingStatuses()
     ])
 
     console.log('Meeting statuses loaded:', meetingStatuses.value.length)

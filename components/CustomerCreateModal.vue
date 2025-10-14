@@ -1103,7 +1103,7 @@ const handleSubmit = async () => {
 
   // Add optional fields
   if (form.gender) customerData.gender = form.gender
-  if (form.birth_date) customerData.birth_date = form.birth_date
+  if (form.birth_date) customerData.birthDate = String(form.birth_date)
   if (form.title?.trim()) customerData.title = form.title.trim()
   if (form.job?.trim()) customerData.job = form.job.trim()
   if (form.company?.trim()) customerData.company = form.company.trim()
