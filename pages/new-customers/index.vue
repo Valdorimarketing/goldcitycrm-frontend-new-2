@@ -8,7 +8,7 @@
           Yeni durumundaki kişileri buradan görebilirsiniz.
         </p>
       </div>
-      <div class="mt-4 sm:mt-0">
+      <div v-if="authStore.user?.role !== 'user'" class="mt-4 sm:mt-0">
         <button
           @click="showCreateModal = true"
           class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
@@ -71,14 +71,6 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="table-header text-gray-700 dark:text-gray-300 w-12">
-                <input
-                  type="checkbox"
-                  :checked="isAllSelected"
-                  @change="toggleSelectAll"
-                  class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </th>
               <th class="table-header text-gray-700 dark:text-gray-300">İsim</th>
               <th class="table-header text-gray-700 dark:text-gray-300">E-posta</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Telefon</th>
@@ -93,14 +85,6 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr v-for="customer in filteredCustomers" :key="customer.id">
-              <td class="table-cell w-12">
-                <input
-                  type="checkbox"
-                  :checked="isCustomerSelected(customer.id)"
-                  @change="toggleCustomerSelection(customer.id)"
-                  class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </td>
               <td class="table-cell">
                 <div class="flex items-center">
                   <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
@@ -242,7 +226,7 @@
 
             <!-- Empty State -->
             <tr v-if="filteredCustomers.length === 0">
-              <td colspan="11" class="text-center py-12">
+              <td colspan="10" class="text-center py-12">
                 <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
                 <h3 class="mt-2 text-sm font-medium text-gray-900">Yeni kişi bulunamadı</h3>
                 <p class="mt-1 text-sm text-gray-500">
@@ -429,6 +413,8 @@ import {
 definePageMeta({
   // middleware: 'auth' // Temporarily disabled
 })
+
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const pagination = ref({

@@ -58,7 +58,6 @@
                       </label>
                       <select
                         v-model="selectedStatus"
-                        @change="handleStatusChange"
                         class="block w-full rounded-lg border-0 px-4 py-2.5 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-amber-600 dark:bg-gray-700 transition-all"
                       >
                         <option :value="null" disabled>Durum seçiniz...</option>
@@ -278,8 +277,8 @@
 </template>
 
 <script setup>
-import { 
-  XMarkIcon, 
+import {
+  XMarkIcon,
   DocumentTextIcon,
   UserIcon,
   PlusIcon,
@@ -287,6 +286,7 @@ import {
   TrashIcon,
   BellIcon
 } from '@heroicons/vue/24/outline'
+import { useCustomer2Product } from '~/composables/useCustomer2Product'
 
 const props = defineProps({
   show: Boolean,
@@ -301,6 +301,7 @@ const authStore = useAuthStore()
 const customersStore = useCustomersStore()
 const { statuses: availableStatuses, fetchStatuses } = useStatuses()
 const { showSuccess, showError } = useToast()
+const { fetchUnsoldProducts } = useCustomer2Product()
 
 // State
 const loading = ref(false)
@@ -347,9 +348,60 @@ const fetchNotes = async () => {
 // Add new note
 const addNote = async () => {
   if (!newNote.note.trim() || !props.customer?.id) return
-  
+
   addingNote.value = true
   try {
+    // First, update status if it has changed
+    const hasStatusChanged = selectedStatus.value && selectedStatus.value !== props.customer?.status
+    let statusUpdateSuccess = false
+    let isSaleStatus = false
+
+    if (hasStatusChanged) {
+      const selectedStatusObj = availableStatuses.value.find(s => s.id === selectedStatus.value)
+      isSaleStatus = selectedStatusObj?.is_sale || selectedStatusObj?.isSale
+
+      // If changing to sale status, check if there are unsold products first
+      if (isSaleStatus) {
+        try {
+          const unsoldProducts = await fetchUnsoldProducts(props.customer.id)
+
+          if (!unsoldProducts || unsoldProducts.length === 0) {
+            alert('Satış yapılamaz. Önce ürün girilmeli')
+            addingNote.value = false
+            return
+          }
+        } catch (error) {
+          console.error('Error fetching unsold products:', error)
+          alert('Ürünler kontrol edilirken hata oluştu')
+          addingNote.value = false
+          return
+        }
+      }
+
+      // Update customer status
+      try {
+        await customersStore.updateCustomer(props.customer.id, {
+          status: selectedStatus.value
+        })
+
+        statusUpdateSuccess = true
+
+        if (!isSaleStatus) {
+          // For non-sale status, refresh customer data
+          await customersStore.fetchCustomer(props.customer.id)
+          emit('customer-updated')
+          showSuccess('Müşteri durumu güncellendi')
+        }
+      } catch (error) {
+        console.error('Error updating customer status:', error)
+        const errorMessage = error?.data?.message || 'Durum güncellenirken hata oluştu'
+        showError(errorMessage)
+        addingNote.value = false
+        return
+      }
+    }
+
+    // Add the note
     const noteData = {
       customer: props.customer.id,
       user: authStore.user?.id,
@@ -357,18 +409,25 @@ const addNote = async () => {
       isReminding: newNote.isReminding,
       remindingAt: newNote.isReminding && newNote.remindingAt ? newNote.remindingAt : undefined
     }
-    
+
     await customerNotesStore.createCustomerNote(noteData)
-    
+
     // Reset form
     newNote.note = ''
     newNote.isReminding = false
     newNote.remindingAt = ''
-    
+
     // Refresh notes
     await fetchNotes()
+
+    // If status was updated successfully and it's a sale status, open the modal
+    if (statusUpdateSuccess && isSaleStatus) {
+      pendingStatusId.value = selectedStatus.value
+      showConvertToSaleModal.value = true
+    }
   } catch (error) {
     console.error('Error adding note:', error)
+    showError('Not eklenirken hata oluştu')
   } finally {
     addingNote.value = false
   }
@@ -433,6 +492,18 @@ const handleStatusChange = async () => {
 
   updatingStatus.value = true
   try {
+    // If changing to sale status, check if there are unsold products first
+    if (isSaleStatus) {
+      const unsoldProducts = await fetchUnsoldProducts(props.customer.id)
+      if (!unsoldProducts || unsoldProducts.length === 0) {
+        showError('Satış yapılamaz. Önce ürün girilmeli')
+        // Revert selection
+        selectedStatus.value = props.customer?.status || null
+        updatingStatus.value = false
+        return
+      }
+    }
+
     // Attempt to update customer status
     await customersStore.updateCustomer(props.customer.id, {
       status: selectedStatus.value

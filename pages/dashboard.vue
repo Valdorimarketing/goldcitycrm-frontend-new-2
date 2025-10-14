@@ -679,18 +679,18 @@ const fetchUnassignedNewCustomers = async () => {
     loadingUnassignedCustomers.value = true
     const api = useApi()
 
-    // Fetch statuses first to get is_first status IDs
-    await fetchStatuses()
-    const firstStatuses = statuses.value.filter(s => s.isFirst === true)
+    console.log('Fetching unassigned customers with isFirst=true, hasRelevantUser=false')
 
-    if (firstStatuses.length === 0) {
-      unassignedNewCustomers.value = []
-      unassignedNewCustomersTotal.value = 0
-      return
-    }
+    // Fetch customers with isFirst=true and hasRelevantUser=false from backend
+    const customersResponse = await api('/customers', {
+      query: {
+        isFirst: true,
+        hasRelevantUser: false,
+        limit: 50  // Fetch more than needed for display
+      }
+    })
 
-    // Fetch all customers
-    const customersResponse = await api('/customers')
+    console.log('Unassigned customers response:', customersResponse)
 
     let allCustomers = []
     if (Array.isArray(customersResponse)) {
@@ -699,15 +699,10 @@ const fetchUnassignedNewCustomers = async () => {
       allCustomers = customersResponse.data
     }
 
-    // Filter customers with is_first status and no relevantUser
-    const filtered = allCustomers.filter(customer => {
-      const hasFirstStatus = firstStatuses.some(s => s.id === customer.statusId || s.id === customer.status)
-      const noRelevantUser = !customer.relevantUser
-      return hasFirstStatus && noRelevantUser
-    })
+    const meta = customersResponse.meta || {}
 
-    unassignedNewCustomersTotal.value = filtered.length
-    unassignedNewCustomers.value = filtered.slice(0, 5)
+    unassignedNewCustomersTotal.value = meta.total || allCustomers.length
+    unassignedNewCustomers.value = allCustomers.slice(0, 5)
   } catch (error) {
     console.error('Error fetching unassigned new customers:', error)
     unassignedNewCustomers.value = []
@@ -795,23 +790,23 @@ const fetchAssignedNewCustomers = async () => {
     loadingAssignedCustomers.value = true
     const api = useApi()
 
-    // Ensure users are loaded
+    // Ensure users are loaded for user info mapping
     if (users.value.length === 0) {
       await fetchUsers()
     }
 
-    // Fetch statuses first to get is_first status IDs
-    await fetchStatuses()
-    const firstStatuses = statuses.value.filter(s => s.isFirst === true)
+    console.log('Fetching assigned customers with isFirst=true, hasRelevantUser=true')
 
-    if (firstStatuses.length === 0) {
-      assignedNewCustomers.value = []
-      assignedNewCustomersTotal.value = 0
-      return
-    }
+    // Fetch customers with isFirst=true and hasRelevantUser=true from backend
+    const customersResponse = await api('/customers', {
+      query: {
+        isFirst: true,
+        hasRelevantUser: true,
+        limit: 50  // Fetch more than needed for display
+      }
+    })
 
-    // Fetch all customers
-    const customersResponse = await api('/customers')
+    console.log('Assigned customers response:', customersResponse)
 
     let allCustomers = []
     if (Array.isArray(customersResponse)) {
@@ -820,23 +815,37 @@ const fetchAssignedNewCustomers = async () => {
       allCustomers = customersResponse.data
     }
 
-    // Filter customers with is_first status and with relevantUser
-    const filtered = allCustomers.filter(customer => {
-      const hasFirstStatus = firstStatuses.some(s => s.id === customer.statusId || s.id === customer.status)
-      const hasRelevantUser = !!customer.relevantUser
-      return hasFirstStatus && hasRelevantUser
+    const meta = customersResponse.meta || {}
+
+    // Create users map for quick lookup
+    const usersMap: Record<string, any> = {}
+    users.value.forEach(user => {
+      usersMap[user.id] = user
     })
 
     // Add user info to each customer
-    const customersWithUserInfo = filtered.map(customer => {
-      const assignedUser = users.value.find(u => u.id === customer.relevantUser)
+    const customersWithUserInfo = allCustomers.map(customer => {
+      const relevantUserId = customer.relevantUserId || customer.relevant_user_id || customer.relevent_user || customer.relevantUser
+
+      // Parse relevantUser correctly - handle both ID and object cases
+      let relevantUserObj = null
+      if (relevantUserId !== null && relevantUserId !== undefined) {
+        if (typeof relevantUserId === 'object') {
+          // Already an object
+          relevantUserObj = relevantUserId
+        } else {
+          // It's an ID, look it up in usersMap
+          relevantUserObj = usersMap[relevantUserId]
+        }
+      }
+
       return {
         ...customer,
-        relevantUserInfo: assignedUser
+        relevantUserInfo: relevantUserObj
       }
     })
 
-    assignedNewCustomersTotal.value = customersWithUserInfo.length
+    assignedNewCustomersTotal.value = meta.total || customersWithUserInfo.length
     assignedNewCustomers.value = customersWithUserInfo.slice(0, 5)
   } catch (error) {
     console.error('Error fetching assigned new customers:', error)
