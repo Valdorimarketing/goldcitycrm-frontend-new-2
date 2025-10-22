@@ -12,7 +12,7 @@
 
     <!-- Search and Filters -->
     <div class="card mb-6">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Ara
@@ -41,25 +41,31 @@
           </select>
         </div>
         <div>
-          <label for="dateRange" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Tarih Aralığı
+          <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Başlangıç Tarihi
           </label>
-          <select
-            id="dateRange"
-            v-model="dateFilter"
+          <input
+            id="startDate"
+            v-model="startDate"
+            type="date"
             class="form-input"
-          >
-            <option value="">Tüm Tarihler</option>
-            <option value="today">Bugün</option>
-            <option value="week">Bu Hafta</option>
-            <option value="month">Bu Ay</option>
-            <option value="year">Bu Yıl</option>
-          </select>
+          />
+        </div>
+        <div>
+          <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Bitiş Tarihi
+          </label>
+          <input
+            id="endDate"
+            v-model="endDate"
+            type="date"
+            class="form-input"
+          />
         </div>
         <div class="flex items-end">
           <button
             @click="resetFilters"
-            class="btn-secondary"
+            class="btn-secondary w-full"
           >
             Filtreleri Temizle
           </button>
@@ -151,7 +157,10 @@
                     </span>
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div
+                      @click="navigateToCustomer(sale.customerId)"
+                      class="text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+                    >
                       {{ sale.customer?.name || 'Bilinmeyen Müşteri' }}
                     </div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
@@ -182,9 +191,13 @@
                 </span>
               </td>
               <td class="table-cell">
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                  -
-                </div>
+                <button
+                  @click="viewSaleDetails(sale)"
+                  class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  title="Görüntüle"
+                >
+                  <EyeIcon class="h-5 w-5" />
+                </button>
               </td>
             </tr>
             
@@ -267,6 +280,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Sale Detail Modal -->
+    <SaleViewModal
+      :show="showDetailModal"
+      :sale="selectedSale"
+      @close="closeDetailModal"
+    />
   </div>
 </template>
 
@@ -276,7 +296,8 @@ import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  EyeIcon
 } from '@heroicons/vue/24/outline'
 import { useApi } from '~/composables/useApi'
 
@@ -285,17 +306,23 @@ import { useApi } from '~/composables/useApi'
 // })
 
 const api = useApi()
+const router = useRouter()
 const { userId, isAdmin } = usePermissions()
 
 // Search and filters
 const searchTerm = ref('')
 const statusFilter = ref('')
-const dateFilter = ref('')
+const startDate = ref('')
+const endDate = ref('')
 
 const loading = ref(true)
 
 // Sales data from API
 const salesData = ref([])
+
+// Modal state
+const showDetailModal = ref(false)
+const selectedSale = ref(null)
 
 // Pagination
 const pagination = ref({
@@ -333,7 +360,9 @@ const loadSalesData = async () => {
         id: sale.id,
         customerId: sale.customer,
         customer: {
-          name: sale.customerDetails?.name || 'Bilinmeyen Müşteri',
+          name: [sale.customerDetails?.name, sale.customerDetails?.surname]
+            .filter(Boolean)
+            .join(' ') || 'Bilinmeyen Müşteri',
           company: sale.customerDetails?.company || sale.customerDetails?.companyName || ''
         },
         amount: calculateSaleAmount(sale.salesProducts),
@@ -392,23 +421,33 @@ const filteredSales = computed(() => {
     filtered = filtered.filter(sale => sale.status === statusFilter.value)
   }
 
-  if (dateFilter.value) {
-    const now = new Date()
+  // Date range filter
+  if (startDate.value || endDate.value) {
     filtered = filtered.filter(sale => {
       const saleDate = new Date(sale.date)
-      switch (dateFilter.value) {
-        case 'today':
-          return saleDate.toDateString() === now.toDateString()
-        case 'week':
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-          return saleDate >= weekAgo
-        case 'month':
-          return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear()
-        case 'year':
-          return saleDate.getFullYear() === now.getFullYear()
-        default:
-          return true
+      const start = startDate.value ? new Date(startDate.value) : null
+      const end = endDate.value ? new Date(endDate.value) : null
+
+      // Set time to start of day for start date
+      if (start) {
+        start.setHours(0, 0, 0, 0)
       }
+
+      // Set time to end of day for end date
+      if (end) {
+        end.setHours(23, 59, 59, 999)
+      }
+
+      // Check if sale date is within range
+      if (start && end) {
+        return saleDate >= start && saleDate <= end
+      } else if (start) {
+        return saleDate >= start
+      } else if (end) {
+        return saleDate <= end
+      }
+
+      return true
     })
   }
 
@@ -459,7 +498,8 @@ const visiblePages = computed(() => {
 const resetFilters = () => {
   searchTerm.value = ''
   statusFilter.value = ''
-  dateFilter.value = ''
+  startDate.value = ''
+  endDate.value = ''
 }
 
 const changePage = (page) => {
@@ -502,6 +542,22 @@ const getStatusText = (status) => {
     default:
       return 'Bilinmiyor'
   }
+}
+
+const navigateToCustomer = (customerId) => {
+  if (customerId) {
+    router.push(`/customers/show/${customerId}`)
+  }
+}
+
+const viewSaleDetails = (sale) => {
+  selectedSale.value = sale
+  showDetailModal.value = true
+}
+
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  selectedSale.value = null
 }
 
 // Page head
