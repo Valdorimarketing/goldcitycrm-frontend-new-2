@@ -37,6 +37,9 @@
         <!-- Fraud Alert Notifications (Admin Only) -->
         <FraudAlertNotification v-if="authStore.user?.role === 'admin'" />
 
+        <!-- User Notifications (User Role Only) -->
+        <NotificationBell v-if="authStore.user?.role === 'user'" />
+
         <!-- Theme toggle -->
         <button
           @click="toggleDarkMode"
@@ -102,6 +105,7 @@
 import { ref, inject, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 import FraudAlertNotification from '~/components/FraudAlertNotification.vue'
+import NotificationBell from '~/components/NotificationBell.vue'
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
