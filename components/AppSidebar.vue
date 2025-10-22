@@ -7,7 +7,7 @@
     ]"
   >
     <!-- Logo -->
-    <div class="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center">
         <div class="flex items-center justify-center w-8 h-8 bg-indigo-600 rounded-lg">
           <span class="text-white font-bold">V</span>
@@ -18,6 +18,25 @@
           </span>
         </transition>
       </div>
+
+      <!-- Toggle Sidebar Button (Desktop only) -->
+      <button
+        @click="sidebar.toggleSidebar"
+        class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+        :title="sidebarOpen ? 'Minimize' : 'Expand'"
+      >
+        <svg
+          :class="[
+            'w-5 h-5 transition-transform duration-200',
+            sidebarOpen ? '' : 'rotate-180'
+          ]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
     </div>
 
     <!-- Navigation -->
@@ -32,6 +51,7 @@
               'group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
               'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
             ]"
+            :title="!sidebarOpen ? item.name : ''"
           >
             <div class="flex items-center">
               <component
@@ -91,11 +111,12 @@
           v-else
           @click="navigateTo(item.href)"
           :class="[
-            'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
+            'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left relative',
             route.path === item.href
               ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
               : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
           ]"
+          :title="!sidebarOpen ? item.name : ''"
         >
           <component
             :is="item.icon"
@@ -142,7 +163,6 @@ import {
   UsersIcon,
   ShoppingBagIcon,
   CalendarIcon,
-  CurrencyDollarIcon,
   UserIcon,
   WrenchScrewdriverIcon,
   ExclamationTriangleIcon,
@@ -170,7 +190,14 @@ const openGroups = ref({
 })
 
 const toggleGroup = (groupName) => {
-  openGroups.value[groupName] = !openGroups.value[groupName]
+  // Eğer sidebar minimize ise, önce sidebar'ı büyüt
+  if (!sidebarOpen.value) {
+    sidebar.toggleSidebar()
+    // Grubu açık yap
+    openGroups.value[groupName] = true
+  } else {
+    openGroups.value[groupName] = !openGroups.value[groupName]
+  }
 }
 
 const allNavigationItems = [
@@ -236,6 +263,10 @@ const navigationItems = computed(() => {
 })
 
 const navigateTo = (path) => {
+  // Eğer sidebar minimize ise, tıklandığında büyüt
+  if (!sidebarOpen.value) {
+    sidebar.toggleSidebar()
+  }
   router.push(path)
 }
 </script>
