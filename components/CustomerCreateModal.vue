@@ -1123,12 +1123,7 @@ const validateForm = () => {
 
   if (!form.phone?.trim()) {
     errors.value.phone = 'Telefon numarası gereklidir'
-  } else {
-    const phoneDigits = form.phone.replace(/\D/g, '')
-    if (phoneDigits.length !== 10 || !phoneDigits.startsWith('5')) {
-      errors.value.phone = 'Telefon numarası (5xx) xxx xx xx formatında olmalıdır'
-    }
-  }
+  }  
 
   if (form.website?.trim()) {
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
