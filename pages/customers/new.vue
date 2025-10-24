@@ -148,7 +148,6 @@
                 <input
                   v-model="form.phone"
                   type="tel"
-                  @input="formatPhoneNumber"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   :class="{ 'border-red-300': errors.phone }"
                   placeholder="(5xx) xxx xx xx"
@@ -575,12 +574,7 @@ const validateForm = () => {
     errors.value.email = 'Geçerli bir e-posta adresi giriniz.'
   }
 
-  if (form.phone?.trim()) {
-    const phoneDigits = form.phone.replace(/\D/g, '')
-    if (phoneDigits.length !== 10 || !phoneDigits.startsWith('5')) {
-      errors.value.phone = 'Telefon numarası (5xx) xxx xx xx formatında olmalıdır'
-    }
-  }
+   
 
   if (form.website?.trim()) {
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
