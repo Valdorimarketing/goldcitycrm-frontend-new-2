@@ -4,446 +4,172 @@
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Müşteriler</h1>
-        <p class="mt-2 text-sm text-gray-700">
+        <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
           Tüm müşterilerinizi buradan yönetebilirsiniz.
         </p>
       </div>
       <div v-if="authStore.user?.role !== 'user'" class="mt-4 sm:mt-0">
-        <button
-          @click="showCreateModal = true"
-          class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" />
-          Yeni Müşteri
+        <button @click="showCreateModal = true"
+          class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+          <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" /> Yeni Müşteri
         </button>
       </div>
     </div>
 
-    <!-- Search and Filters -->
+    <!-- Search & Filters -->
     <div class="card mb-6">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Ara
-          </label>
-          <input
-            id="search"
-            v-model="searchTerm"
-            type="text"
-            class="form-input"
-            placeholder="İsim, email veya telefon ile ara..."
-          />
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ara</label>
+          <input v-model="searchTerm" type="text" class="form-input" placeholder="İsim, email veya telefon..." />
         </div>
+
         <div>
-          <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Durum
-          </label>
-          <select
-            id="status"
-            v-model="statusFilter"
-            class="form-input"
-          >
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Durum</label>
+          <select v-model="statusFilter" class="form-input">
             <option :value="undefined">Tüm Durumlar</option>
-            <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-              {{ status.label }}
+            <option v-for="status in statusOptions" :key="status.value" :value="status.value">{{ status.label }}
             </option>
           </select>
         </div>
+
         <div v-if="authStore.user?.role === 'admin'">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Atanan Kullanıcı
-          </label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Atanan Kullanıcı</label>
           <Combobox v-model="relevantUserFilter" nullable>
             <div class="relative">
-              <ComboboxInput
-                class="form-input w-full"
-                :displayValue="(user) => user ? user.name : ''"
-                @change="userQuery = $event.target.value"
-                placeholder="Kullanıcı seçin..."
-              />
+              <ComboboxInput class="form-input w-full" :displayValue="user => user ? user.name : ''"
+                @change="userQuery = $event.target.value" placeholder="Kullanıcı seçin..." />
               <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-2">
-                <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <ChevronUpDownIcon class="h-5 w-5 text-gray-400" />
               </ComboboxButton>
-              <ComboboxOptions class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                <ComboboxOption
-                  v-if="relevantUserFilter"
-                  :value="null"
-                  v-slot="{ active }"
+              <ComboboxOptions
+                class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                <ComboboxOption v-if="relevantUserFilter" :value="null" v-slot="{ active }"
                   class="relative cursor-pointer select-none py-2 pl-3 pr-9"
-                  :class="active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'"
-                >
-                  <span class="block truncate">Tüm Kullanıcılar</span>
+                  :class="active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'">
+                  Tüm Kullanıcılar
                 </ComboboxOption>
-                <ComboboxOption
-                  v-for="user in filteredUsers"
-                  :key="user.id"
-                  :value="user"
-                  v-slot="{ active, selected }"
+                <ComboboxOption v-for="user in filteredUsers" :key="user.id" :value="user" v-slot="{ active, selected }"
                   class="relative cursor-pointer select-none py-2 pl-3 pr-9"
-                  :class="active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'"
-                >
-                  <span class="block truncate" :class="selected ? 'font-semibold' : 'font-normal'">
-                    {{ user.name }}
-                  </span>
-                  <span v-if="selected" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="active ? 'text-white' : 'text-indigo-600'">
-                    <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                  :class="active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'">
+                  <span class="block truncate" :class="selected ? 'font-semibold' : 'font-normal'">{{ user.name
+                    }}</span>
+                  <span v-if="selected" class="absolute inset-y-0 right-0 flex items-center pr-4"
+                    :class="active ? 'text-white' : 'text-indigo-600'">
+                    <CheckIcon class="h-5 w-5" />
                   </span>
                 </ComboboxOption>
-                <div v-if="filteredUsers.length === 0" class="relative cursor-default select-none py-2 px-3 text-gray-500 dark:text-gray-400">
+                <div v-if="filteredUsers.length === 0"
+                  class="relative cursor-default select-none py-2 px-3 text-gray-500 dark:text-gray-400">
                   Kullanıcı bulunamadı
                 </div>
               </ComboboxOptions>
             </div>
           </Combobox>
         </div>
+
         <div class="flex items-end">
-          <button
-            @click="resetFilters"
-            class="btn-secondary w-full"
-          >
-            Filtreleri Temizle
-          </button>
+          <button @click="resetFilters" class="btn-secondary w-full">Filtreleri Temizle</button>
         </div>
       </div>
     </div>
 
-    <!-- Loading State -->
+    <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
     </div>
 
     <!-- Customers Table -->
     <div v-else class="card">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th class="table-header text-gray-700 dark:text-gray-300">İsim</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Telefon</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Durum</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Kaynak</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">İlgilenilen Konu</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Oluşturan</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Atanan</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Aktif</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Eklenme Tarihi</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">İşlemler</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="customer in customers" :key="customer.id">
-              <td class="table-cell">
-                <div class="flex items-center">
-                  <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                    <span class="text-sm font-medium text-indigo-600 dark:text-indigo-300">
-                      {{ customer.name.charAt(0).toUpperCase() }}
-                    </span>
-                  </div>
-                  <div class="ml-4">
-                    <NuxtLink
-                      :to="`/customers/show/${customer.id}`"
-                      class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                    >
-                      {{ customer.name }}
-                    </NuxtLink>
-                  </div>
-                </div>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.phone || '-' }}</div>
-              </td>
-              <td class="table-cell">
-                <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                  :class="getStatusClass(customer.status)"
-                >
-                  {{ getStatusText(customer.status) }}
-                </span>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.source || '-' }}</div>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.relatedTransaction || '-' }}</div>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.user?.name || '-' }}</div>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ customer.relevantUser ? `${customer.relevantUser.name || ''} ${customer.relevantUser.surname || ''}`.trim() : '-' }}
-                </div>
-              </td>
-              <td class="table-cell">
-                <span
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                  :class="customer.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'"
-                >
-                  {{ customer.isActive ? 'Aktif' : 'Pasif' }}
-                </span>
-              </td>
-              <td class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ formatDate(customer.createdAt) }}
-                </div>
-              </td>
-              <td class="table-cell">
-                <div class="flex gap-1">
-                  <NuxtLink
-                    :to="`/customers/show/${customer.id}`"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Görüntüle"
-                  >
-                    <EyeIcon class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Görüntüle
-                    </span>
-                  </NuxtLink>
-                  <button
-                    @click="showHistory(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Geçmiş"
-                  >
-                    <ClockIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Geçmiş
-                    </span>
-                  </button>
-                  <button
-                    @click="showNotes(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Notlar"
-                  >
-                    <DocumentTextIcon class="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Notlar
-                    </span>
-                  </button>
-                  <button
-                    @click="showDoctorAssignment(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Doktor Görüşüne Gönder"
-                  >
-                    <UserIcon class="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                      Doktor Görüşüne Gönder
-                    </span>
-                  </button>
-                  <button
-                    @click="showServices(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Hizmetler"
-                  >
-                    <ShoppingBagIcon class="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Hizmetler
-                    </span>
-                  </button>
-                  <button
-                    @click="showFiles(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Müşteri Dosyaları"
-                  >
-                    <FolderIcon class="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Müşteri Dosyaları
-                    </span>
-                  </button>
-                  <NuxtLink
-                    v-if="isEditable"
-                    :to="`/customers/edit/${customer.id}`"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Düzenle"
-                  >
-                    <PencilIcon class="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Düzenle
-                    </span>
-                  </NuxtLink>
-                  <button
-                    v-if="isDeleteable"
-                    @click="confirmDelete(customer)"
-                    class="relative group p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    title="Sil"
-                  >
-                    <TrashIcon class="h-4 w-4 text-red-600 dark:text-red-400" />
-                    <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Sil
-                    </span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- Empty State -->
-            <tr v-if="customers.length === 0">
-              <td colspan="10" class="text-center py-12">
-                <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Müşteri bulunamadı</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ searchTerm || statusFilter ? 'Arama kriterlerinize uygun müşteri bulunamadı.' : 'Henüz müşteri eklenmemiş.' }}
-                </p>
-                
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <CustomerTable :data="customers" :users-map="usersMap" :status-map="statusMap" @sort="handleSort">
+        <template #actions="{ customer }">
+          <button v-if="isEditable" @click="$emit('edit', customer)">Düzenle</button>
+          <button v-if="isDeleteable" @click="$emit('confirm-delete', customer)">Sil</button>
+          <button @click="$emit('show-history', customer)">Geçmiş</button>
+          <button @click="$emit('show-notes', customer)">Notlar</button>
+          <button @click="$emit('show-doctor-assignment', customer)">Doktor Ata</button>
+          <button @click="$emit('show-services', customer)">Hizmetler</button>
+          <button @click="$emit('show-files', customer)">Dosyalar</button>
+        </template>
+      </CustomerTable>
+
 
       <!-- Pagination -->
-      <div v-if="pagination.totalPages > 1" class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6">
+      <div v-if="pagination.totalPages > 1"
+        class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6">
         <div class="flex flex-1 justify-between sm:hidden">
-          <button
-            :disabled="pagination.page === 1"
-            @click="changePage(pagination.page - 1)"
-            class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-          >
-            Önceki
-          </button>
-          <button
-            :disabled="pagination.page === pagination.totalPages"
-            @click="changePage(pagination.page + 1)"
-            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-          >
-            Sonraki
-          </button>
+          <button :disabled="pagination.page === 1" @click="changePage(pagination.page - 1)"
+            class="btn-pagination">Önceki</button>
+          <button :disabled="pagination.page === pagination.totalPages" @click="changePage(pagination.page + 1)"
+            class="btn-pagination ml-3">Sonraki</button>
         </div>
+
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p class="text-sm text-gray-700 dark:text-gray-300">
-              <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span>
-              -
-              <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
-              arası, toplam
-              <span class="font-medium">{{ pagination.total }}</span>
-              sonuç
-            </p>
-          </div>
-          <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
-              <button
-                :disabled="pagination.page === 1"
-                @click="changePage(pagination.page - 1)"
-                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-              >
-                <ChevronLeftIcon class="h-5 w-5" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                @click="changePage(page)"
-                :class="[
-                  page === pagination.page
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700',
-                  'relative inline-flex items-center px-4 py-2 text-sm font-semibold'
-                ]"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                :disabled="pagination.page === pagination.totalPages"
-                @click="changePage(pagination.page + 1)"
-                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-              >
-                <ChevronRightIcon class="h-5 w-5" />
-              </button>
-            </nav>
-          </div>
+          <p class="text-sm text-gray-700 dark:text-gray-300">
+            <span class="font-medium">{{ ((pagination.page - 1) * pagination.limit) + 1 }}</span> -
+            <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
+            arası, toplam <span class="font-medium">{{ pagination.total }}</span> sonuç
+          </p>
+          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
+            <button :disabled="pagination.page === 1" @click="changePage(pagination.page - 1)" class="btn-page">
+              <ChevronLeftIcon class="h-5 w-5" />
+            </button>
+            <button v-for="page in visiblePages" :key="page" @click="changePage(page)"
+              :class="[page === pagination.page ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700', 'relative inline-flex items-center px-4 py-2 text-sm font-semibold']">
+              {{ page }}
+            </button>
+            <button :disabled="pagination.page === pagination.totalPages" @click="changePage(pagination.page + 1)"
+              class="btn-page rounded-r-md">
+              <ChevronRightIcon class="h-5 w-5" />
+            </button>
+          </nav>
         </div>
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-opacity"></div>
-        
-        <div class="inline-block transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-          <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-              <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                <ExclamationTriangleIcon class="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white">
-                  Müşteriyi Sil
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    <strong class="text-gray-700 dark:text-gray-300">{{ customerToDelete?.name }}</strong> adlı müşteriyi silmek istediğinizden emin misiniz? 
-                    Bu işlem geri alınamaz.
-                  </p>
-                </div>
-              </div>
+    <!-- Modals -->
+    <CustomerCreateModal :show="showCreateModal" @close="showCreateModal = false" @created="handleCustomerCreated" />
+    <CustomerHistoryModal :show="showHistoryModal" :customer="selectedCustomer" @close="showHistoryModal = false" />
+    <CustomerNotesModal :show="showNotesModal" :customer="selectedCustomer" @close="showNotesModal = false"
+      @customer-updated="() => loadCustomers(pagination.page)" />
+    <DoctorAssignmentModal :show="showDoctorModal" :customer="selectedCustomer" @close="showDoctorModal = false"
+      @assigned="handleDoctorAssigned" />
+    <CustomerServicesModal :show="showServicesModal" :customer="selectedCustomer" @close="showServicesModal = false"
+      @saved="handleServicesSaved" />
+    <CustomerFilesModal :show="showFilesModal" :customer="selectedCustomer" @close="showFilesModal = false" />
+
+    <!-- Delete Confirmation -->
+    <div v-if="showDeleteModal"
+      class="fixed inset-0 z-50 flex items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80"></div>
+      <div
+        class="inline-block transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+        <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div
+              class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+              <ExclamationTriangleIcon class="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Müşteriyi Sil</h3>
+              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <strong class="text-gray-700 dark:text-gray-300">{{ customerToDelete?.name }}</strong> adlı müşteriyi
+                silmek
+                istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              </p>
             </div>
           </div>
-          <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-            <button
-              @click="handleDelete"
-              class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 dark:bg-red-600 dark:hover:bg-red-700 sm:ml-3 sm:w-auto"
-            >
-              Sil
-            </button>
-            <button
-              @click="showDeleteModal = false"
-              class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-600 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 sm:mt-0 sm:w-auto"
-            >
-              İptal
-            </button>
-          </div>
+        </div>
+        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <button @click="handleDelete" class="btn-delete sm:ml-3 sm:w-auto">Sil</button>
+          <button @click="showDeleteModal = false" class="btn-cancel sm:mt-0 sm:w-auto">İptal</button>
         </div>
       </div>
     </div>
-
-    <!-- Customer Create Modal -->
-    <CustomerCreateModal
-      :show="showCreateModal"
-      @close="showCreateModal = false"
-      @created="handleCustomerCreated"
-    />
-
-    <!-- Customer History Modal -->
-    <CustomerHistoryModal
-      :show="showHistoryModal"
-      :customer="selectedCustomer"
-      @close="showHistoryModal = false"
-    />
-
-    <!-- Customer Notes Modal -->
-    <CustomerNotesModal
-      :show="showNotesModal"
-      :customer="selectedCustomer"
-      @close="showNotesModal = false"
-      @customer-updated="() => loadCustomers(pagination.page)"
-    />
-
-    <!-- Doctor Assignment Modal -->
-    <DoctorAssignmentModal
-      :show="showDoctorModal"
-      :customer="selectedCustomer"
-      @close="showDoctorModal = false"
-      @assigned="handleDoctorAssigned"
-    />
-
-    <!-- Customer Services Modal -->
-    <CustomerServicesModal
-      :show="showServicesModal"
-      :customer="selectedCustomer"
-      @close="showServicesModal = false"
-      @saved="handleServicesSaved"
-    />
-
-    <!-- Customer Files Modal -->
-    <CustomerFilesModal
-      :show="showFilesModal"
-      :customer="selectedCustomer"
-      @close="showFilesModal = false"
-    />
   </div>
 </template>
+
+
 
 <script setup>
 import {
@@ -452,14 +178,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
-  EyeIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  UserIcon,
-  ShoppingBagIcon,
-  PencilIcon,
-  TrashIcon,
-  FolderIcon,
   CheckIcon,
   ChevronUpDownIcon
 } from '@heroicons/vue/24/outline'
@@ -472,6 +190,7 @@ import {
 } from '@headlessui/vue'
 import { watchDebounced } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
+import CustomerTable from '~/components/CustomerTable.vue'
 
 definePageMeta({
   // middleware: 'auth' // Temporarily disabled
@@ -539,7 +258,7 @@ const filteredUsers = computed(() => {
   }
   return usersList.value.filter((user) => {
     return user.name.toLowerCase().includes(userQuery.value.toLowerCase()) ||
-           (user.email && user.email.toLowerCase().includes(userQuery.value.toLowerCase()))
+      (user.email && user.email.toLowerCase().includes(userQuery.value.toLowerCase()))
   })
 })
 
@@ -558,7 +277,7 @@ const visiblePages = computed(() => {
   const pages = []
   const total = pagination.value.totalPages
   const current = pagination.value.page
-  
+
   if (total <= 7) {
     for (let i = 1; i <= total; i++) {
       pages.push(i)
@@ -572,7 +291,7 @@ const visiblePages = computed(() => {
       pages.push(1, '...', current - 1, current, current + 1, '...', total)
     }
   }
-  
+
   return pages.filter(page => page !== '...')
 })
 
@@ -687,12 +406,12 @@ const getStatusClass = (statusId) => {
   if (!status) {
     return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
   }
-  
+
   // Use color from status if available
   if (status.color) {
     return `bg-[${status.color}20] text-[${status.color}] dark:bg-[${status.color}30] dark:text-[${status.color}]`
   }
-  
+
   // Default colors based on status flags
   if (status.isSale) {
     return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
@@ -703,7 +422,7 @@ const getStatusClass = (statusId) => {
   if (status.isFirst) {
     return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
   }
-  
+
   return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
 }
 
@@ -778,4 +497,4 @@ onMounted(async () => {
 useHead({
   title: 'Müşteriler - Valdori CRM'
 })
-</script> 
+</script>

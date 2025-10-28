@@ -57,7 +57,7 @@ const getEventTitle = (meeting) => {
 
   return parts.join(' - ') || 'Randevu'
 }
-
+ 
 const events = computed(() => {
   return props.meetings.map(meeting => {
     let color = '#3B82F6'
@@ -128,13 +128,22 @@ const updateCalendarOptions = () => {
     displayEventTime: true,
     displayEventEnd: true,
 
-    // 🔹 Tema farkı
+    // 🔹 Dark mode farkı
     eventClassNames: isDarkMode.value ? ['fc-dark-event'] : ['fc-light-event'],
     dayHeaderClassNames: isDarkMode.value ? ['fc-dark-header'] : ['fc-light-header'],
     slotLabelClassNames: isDarkMode.value ? ['fc-dark-slot'] : ['fc-light-slot'],
     slotLaneContentClassNames: isDarkMode.value ? ['fc-dark-slot-lane'] : ['fc-light-slot-lane'],
+
+    // 🔹 Buraya ekliyoruz
+    dateClick: (info) => {
+      emit('dateSelect', info)  // tıklanan günü parent’e gönder
+    },
+    eventClick: (info) => {
+      emit('eventClick', info.event.extendedProps.meeting) // event objesini parent’e gönder
+    },
   }
 }
+
 
 // İlk yükleme
 updateCalendarOptions()
