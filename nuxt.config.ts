@@ -5,8 +5,14 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    '@nuxt/fonts'
   ],
+  fonts: { 
+    families: [  
+      { name: 'Inter', provider: 'google' }, 
+    ]
+  },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
