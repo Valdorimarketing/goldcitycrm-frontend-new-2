@@ -89,7 +89,7 @@
     </div>
 
     <!-- Calendar View -->
-    <MeetingCalendar v-else-if="viewMode === 'calendar'" :meetings="meetings" :loading="loading"
+    <MeetingCalendar v-else-if="viewMode === 'calendar'" :meetings="meetings" :statuses="meetingStatuses" :loading="loading"
       @event-click="handleEventClick" @date-select="handleDateSelect" />
 
     <!-- Meetings Table -->

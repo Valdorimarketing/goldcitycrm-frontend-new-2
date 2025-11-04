@@ -78,7 +78,7 @@
               <th class="table-header text-gray-700 dark:text-gray-300">E-posta</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Telefon</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Kaynak</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">Eklenme Tarihi</th>
+              <th class="table-header text-gray-700 dark:text-gray-300">Eklenme Tarihi</th> 
               <th class="table-header text-gray-700 dark:text-gray-300">Bekleme Süresi</th>
               <th v-if="activeTab === 'unassigned'" class="table-header text-gray-700 dark:text-gray-300">Atama</th>
               <th v-if="activeTab === 'assigned'" class="table-header text-gray-700 dark:text-gray-300">Atanan</th>

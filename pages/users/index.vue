@@ -24,9 +24,43 @@
       </div>
     </div>
 
+    <!-- Role Tabs / Statistics -->
+    <div v-if="roleStats.length" class="mt-6 flex flex-wrap gap-2 mb-4">
+      <button @click="activeRole = null" class="px-4 py-2 rounded-md text-sm font-medium border transition" :class="[
+        !activeRole
+          ? 'bg-indigo-600 text-white border-indigo-600'
+          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-indigo-50 dark:hover:bg-gray-700'
+      ]">
+        Tümü ({{ usersStore.users.value.length }})
+      </button>
+
+      <button v-for="stat in roleStats" :key="stat.role" @click="activeRole = stat.role"
+        class="px-4 py-2 rounded-md text-sm font-medium border transition" :class="[
+          activeRole === stat.role
+            ? getRoleColorClass(stat.role, true)
+            : getRoleColorClass(stat.role, false)
+        ]">
+        {{ getRoleText(stat.role) }} ({{ stat.count }})
+      </button>
+    </div>
+
+
+
     <!-- Users List -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <div v-for="user in filteredUsers" :key="user.id" class="card">
+      <div v-for="user in filteredUsers" :key="user.id" class="card border-l-4 p-4 rounded-lg shadow-sm transition"
+        :class="[
+          user.role === 'admin'
+            ? 'border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+            : user.role === 'doctor'
+              ? 'border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
+              : user.role === 'pricing'
+                ? 'border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                : user.role === 'user'
+                  ? 'border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                  : 'border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40'
+        ]">
+
         <div class="flex flex-col space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -97,10 +131,8 @@ import { ArrowPathIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { useUsersStore } from '~/stores/users'
 import UserCreateModal from '~/components/UserCreateModal.vue'
 import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-
-dayjs.extend(relativeTime)
-const now = dayjs()
+import relativeTime from 'dayjs/plugin/relativeTime' 
+dayjs.extend(relativeTime) 
 
 definePageMeta({
   // middleware: 'auth' // Temporarily disabled
@@ -112,6 +144,7 @@ const usersStore = useUsersStore()
 // Modal state
 const showCreateModal = ref(false)
 const selectedUser = ref(null)
+const activeRole = ref(null)
 
 // Loading state for toggle buttons
 const toggleLoading = ref({})
@@ -179,6 +212,66 @@ const loadUsers = async () => {
   }
 }
 
+
+const roleStats = computed(() => {
+  const users = usersStore.users.value || []
+  const counts = {}
+
+  users.forEach(user => {
+    const role = user.role || 'unknown'
+    counts[role] = (counts[role] || 0) + 1
+  })
+
+  return Object.keys(counts).map(role => ({
+    role,
+    count: counts[role]
+  }))
+})
+
+const filteredUsers = computed(() => {
+  const all = usersStore.users.value || []
+  if (!activeRole.value) return all
+  return all.filter(user => user.role === activeRole.value)
+})
+
+
+
+// Role göre renk sınıfı
+const getRoleColorClass = (role, isActive) => {
+  const base = 'border transition-colors'
+
+  const colorMap = {
+    admin: {
+      active: 'bg-red-600 text-white border-red-600',
+      inactive:
+        'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-800/40'
+    },
+    doctor: {
+      active: 'bg-green-600 text-white border-green-600',
+      inactive:
+        'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-800/40'
+    },
+    pricing: {
+      active: 'bg-yellow-500 text-white border-yellow-500',
+      inactive:
+        'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-800/40'
+    },
+    user: {
+      active: 'bg-blue-600 text-white border-blue-600',
+      inactive:
+        'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-800/40'
+    },
+    default: {
+      active: 'bg-gray-600 text-white border-gray-600',
+      inactive:
+        'bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+    }
+  }
+
+  const selected = colorMap[role] || colorMap.default
+  return `${base} ${isActive ? selected.active : selected.inactive}`
+}
+
 // Load data on mount
 onMounted(() => {
   loadUsers()
@@ -219,10 +312,7 @@ const handleUserUpdated = (updatedUser) => {
 
 // Data is loaded above in script setup
 
-// Computed properties
-const filteredUsers = computed(() => {
-  return usersStore.users.value || []
-})
+ 
 
 const toggleUserStatus = async (user) => {
   console.log('Toggling user status for:', user.name || `User ID ${user.id}`)

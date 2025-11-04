@@ -1,6 +1,8 @@
 
 import { ref } from 'vue'
 
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 interface FraudAlert {
   id: number
   message: string
@@ -30,6 +32,7 @@ interface FetchAlertsParams {
 
 export const useFraudAlerts = () => {
   const $api = useApi()
+  dayjs.extend(relativeTime)
 
   const unreadCount = ref(0)
   const uncheckedCount = ref(0)
@@ -78,6 +81,7 @@ export const useFraudAlerts = () => {
       } else if (Array.isArray(response)) {
         // Handle non-paginated response
         alerts.value = response
+
         meta.value = {
           page: 1,
           limit: response.length,
@@ -163,8 +167,8 @@ export const useFraudAlerts = () => {
           limit,
           include: 'user'
         }
-      })
-      alerts.value = response
+      }) as any
+      alerts.value = response.data
       return response
     } catch (error) {
       console.error('Error fetching recent alerts:', error)
@@ -204,56 +208,46 @@ export const useFraudAlerts = () => {
       return false
     }
   }
-  
+
   // Check for new alerts (called every 30 seconds)
   const checkForNewAlerts = async () => {
-    const unreadAlerts = await getUnreadAlerts()
-    
+    const unreadAlerts = await getUnreadAlerts() as any
+
     if (unreadAlerts.length > 0) {
       const sessionKey = `fraudAlert_${unreadAlerts[0].id}_shown`
       const alertShown = sessionStorage.getItem(sessionKey)
-      
+
       if (!alertShown) {
         currentAlert.value = unreadAlerts[0]
         showPopup.value = true
         sessionStorage.setItem(sessionKey, 'true')
       }
     }
-    
+
     await getUnreadCount()
   }
-  
+
   // Dismiss popup (Sonra Hatırlat)
   const dismissPopup = () => {
     showPopup.value = false
     currentAlert.value = null
   }
-  
+
   // Format relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
+  const formatRelativeTime = (dateString: any) => { 
+    if (!dateString) return '';
+    dateString = new Date(dateString);
     
-    if (diffMins < 1) return 'Az önce'
-    if (diffMins < 60) return `${diffMins} dakika önce`
-    
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `${diffHours} saat önce`
-    
-    const diffDays = Math.floor(diffHours / 24)
-    if (diffDays < 7) return `${diffDays} gün önce`
-    
-    return date.toLocaleDateString('tr-TR')
+    return dayjs(dateString).fromNow()
   }
-  
+
   // Truncate message
   const truncateMessage = (message: string, length = 50) => {
+    if (!message) return;
     if (message.length <= length) return message
     return message.substring(0, length) + '...'
   }
-  
+
   return {
     unreadCount,
     uncheckedCount,
