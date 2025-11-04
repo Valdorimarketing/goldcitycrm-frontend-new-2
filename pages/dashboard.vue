@@ -484,16 +484,9 @@ const calculateStats = async () => {
     const customersResponse = await api('/customers', { query: filters }) as any 
 
     // Filter customers based on access permissions
-    let filteredCustomers = []
-    if (Array.isArray(customersResponse)) {
-      filteredCustomers = customersResponse.filter(c => canAccessCustomer(c))
-      totalCustomers.value = filteredCustomers.length
-    } else if (customersResponse.data && Array.isArray(customersResponse.data)) {
-      filteredCustomers = customersResponse.data.filter((c:any) => canAccessCustomer(c))
-      totalCustomers.value = filteredCustomers.length
-    } else {
-      totalCustomers.value = 0
-    }
+    
+    totalCustomers.value = customersResponse.meta?.total || 0;
+    
     
     // Fetch sales
     const salesFilters = getRelatedDataFilters() || {}

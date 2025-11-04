@@ -92,7 +92,7 @@ export const useCustomersStore = defineStore('customers', () => {
         queryParams = { page: 1, limit: 20 }
       }
 
-      console.log('[fetchCustomers] Query params:', queryParams)
+      
       const response = await api<any>('/customers', {
         query: queryParams
       })

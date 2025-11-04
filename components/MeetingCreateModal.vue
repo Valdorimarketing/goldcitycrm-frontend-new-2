@@ -324,7 +324,7 @@ const selectHospital = async (hospital: any) => {
 
   try {
     const $api = useApi()
-    const response = await $api(`/hospitals/${hospital.id}/doctors`)
+    const response = await $api(`/hospitals/${hospital.id}/doctors`) as any
     hospitalDoctors.value = Array.isArray(response) ? response : (response.data || [])
   } catch (err) {
     console.error('Failed to fetch hospital doctors:', err)
@@ -364,7 +364,7 @@ const fetchCustomers = async (search = '') => {
       page: '1',
       limit: '50'
     })
-    const response = await api(`/customers?${params.toString()}`)
+    const response = await api(`/customers?${params.toString()}`) as any
     customers.value = Array.isArray(response) ? response : (response.data || [])
   } catch (err) {
     console.error('Failed to fetch customers:', err)

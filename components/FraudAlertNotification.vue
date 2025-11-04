@@ -71,7 +71,8 @@
                     alert.isRead ? 'text-gray-400' : 'text-amber-500',
                     'h-5 w-5 mt-0.5 flex-shrink-0'
                   ]"
-                />
+                /> 
+
                 <div class="ml-3 flex-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ truncateMessage(alert.message) }}
@@ -131,10 +132,8 @@ const isDropdownOpen = ref(false)
 const toggleDropdown = async () => {
   isDropdownOpen.value = !isDropdownOpen.value
   
-  if (isDropdownOpen.value) {
-    loading.value = true
-    await getRecentAlerts(5)
-    loading.value = false
+  if (isDropdownOpen.value) { 
+    await getRecentAlerts(5)  
   }
 }
 

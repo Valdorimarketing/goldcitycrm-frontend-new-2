@@ -80,20 +80,7 @@
                             <p v-if="item.description" class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                               {{ item.description }}
                             </p>
-                            <!-- Request Data -->
-                            <div v-if="item.requestData" class="mt-2">
-                              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">İstek Verisi:</p>
-                              <p class="text-xs text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-1 rounded mt-1">
-                                {{ item.requestData }}
-                              </p>
-                            </div>
-                            <!-- Response Data -->
-                            <div v-if="item.responseData" class="mt-2">
-                              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Yanıt Verisi:</p>
-                              <p class="text-xs text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-1 rounded mt-1">
-                                {{ item.responseData }}
-                              </p>
-                            </div>
+                           
                           </div>
                           <div class="ml-4 text-right">
                             <p class="text-xs text-gray-500 dark:text-gray-400">

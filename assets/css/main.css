@@ -97,9 +97,29 @@
 }
 
 /* Dark mode */
-.fc-dark-event {
+/* .fc-dark-event {
   background-color: #2563eb !important;
   color: white !important;
+} */
+
+html.dark .fc-theme-standard td,
+html.dark .fc-theme-standard th {
+    border: 1px solid rgb(57 73 95);
+}
+html.dark .fc .fc-scrollgrid-section table 
+{
+    background: #1f2937;
+}
+
+html.dark .fc .fc-list-event:hover td {
+    background-color: #39495f;
+}
+html.dark .fc-theme-standard .fc-list-day-cushion {
+    background-color: #39495f;
+} 
+
+html.dark .fc-theme-standard .fc-list {
+    border: 1px solid rgb(57 73 95);
 }
 
 .fc-dark-slot-lane {

@@ -13,17 +13,25 @@ import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import trLocale from '@fullcalendar/core/locales/tr'
 
+ 
+
 const props = defineProps({
   meetings: {
     type: Array,
     required: true,
     default: () => []
-  }, 
+  },
+  statuses: {
+    type: Array,
+    required: true,
+    default: () => []
+  },
   loading: {
     type: Boolean,
     default: false
   }
 })
+
  
 
 const emit = defineEmits(['eventClick', 'dateSelect'])
@@ -45,18 +53,37 @@ const getEventTitle = (meeting) => {
 
   return parts.join(' - ') || 'Randevu'
 }
- 
-const events = computed(() => {
-  return props.meetings.map(meeting => {
-    let color = '#3B82F6'
 
-    if (meeting.meetingStatus) {
-      const status = meeting.meetingStatus
-      if (typeof status === 'object' && status.is_sale) {
+const events = computed(() => {
+  const now = new Date()
+
+  return props.meetings.map(meeting => {
+    const status = props.statuses.find(s => s.id === meeting.meetingStatus) 
+    let color = '#3B82F6' // default: Randevu Verildi 
+    
+ 
+
+    switch (status.id) {
+      case 1:
+        color = '#3B82F6'
+        break
+      case 2:
         color = '#10B981'
-      } else if (typeof status === 'object' && status.is_closed) {
-        color = '#EF4444'
-      }
+        break 
+      case 3:
+        color = '#A16207'
+        break
+      case 4:
+        color = '#9CA3AF'
+        break
+      default:
+        color = '#3B82F6'
+    }
+
+    // 🔹 Tarih geçtiyse ve tamamlanmadıysa yeşile boya
+    const isPast = meeting.endTime && new Date(meeting.endTime) < now
+    if (isPast && status.id !== 2) {
+      color = '#10B981'
     }
 
     return {
@@ -67,11 +94,13 @@ const events = computed(() => {
       backgroundColor: color,
       borderColor: color,
       extendedProps: {
-        meeting: meeting
+        meeting: meeting,
+        status: status.name || 'Bilinmiyor'
       }
     }
   })
 })
+
 
 
 

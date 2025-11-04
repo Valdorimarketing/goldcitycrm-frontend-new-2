@@ -8,11 +8,20 @@
           Tüm müşterilerinizi buradan yönetebilirsiniz.
         </p>
       </div>
-      <div v-if="authStore.user?.role !== 'user'" class="mt-4 sm:mt-0">
-        <button @click="showCreateModal = true"
-          class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-          <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" /> Yeni Müşteri
-        </button>
+      <div class="relative flex gap-2">
+        <div class="relative">
+          <button @click="loadCustomers(1)"
+            class="inline-flex items-center px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition">
+            <ArrowPathIcon class="h-5 w-5 mr-2" />
+            Yenile
+          </button>
+        </div>
+        <div v-if="authStore.user?.role == 'admin'" class="mt-4 sm:mt-0">
+          <button @click="showCreateModal = true"
+            class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <PlusIcon class="-ml-0.5 mr-1.5 h-5 w-5" /> Yeni Müşteri
+          </button>
+        </div>
       </div>
     </div>
 
@@ -53,7 +62,7 @@
                   class="relative cursor-pointer select-none py-2 pl-3 pr-9"
                   :class="active ? 'bg-indigo-600 text-white' : 'text-gray-900 dark:text-gray-100'">
                   <span class="block truncate" :class="selected ? 'font-semibold' : 'font-normal'">{{ user.name
-                    }}</span>
+                  }}</span>
                   <span v-if="selected" class="absolute inset-y-0 right-0 flex items-center pr-4"
                     :class="active ? 'text-white' : 'text-indigo-600'">
                     <CheckIcon class="h-5 w-5" />
@@ -81,20 +90,11 @@
 
     <!-- Customers Table -->
     <div v-else class="card">
-      
-      <CustomerTable :data="customers" 
-        :users-map="usersMap" 
-        :status-map="statusMap" 
-        @sort="handleSort"
-        :is-editable="isEditable" 
-        :is-deleteable="isDeleteable" 
-        @delete="confirmDelete" 
-        @show-history="showHistory"
-        @show-notes="showNotes" 
-        @show-doctor="showDoctorAssignment" 
-        @show-services="showServices" 
-        @show-files="showFiles"
-      ></CustomerTable>
+
+      <CustomerTable :data="customers" :users-map="usersMap" :status-map="statusMap" @sort="handleSort"
+        :is-editable="isEditable" :is-deleteable="isDeleteable" @confirm-delete="confirmDelete" @show-history="showHistory"
+        @show-notes="showNotes" @show-doctor="showDoctorAssignment" @show-services="showServices"
+        @show-files="showFiles"></CustomerTable>
 
 
       <!-- Pagination -->
@@ -128,10 +128,10 @@
           </nav>
         </div>
       </div>
-      
+
     </div>
 
- 
+
     <CustomerCreateModal :show="showCreateModal" @close="showCreateModal = false" @created="handleCustomerCreated" />
     <CustomerHistoryModal :show="showHistoryModal" :customer="selectedCustomer" @close="showHistoryModal = false" />
     <CustomerNotesModal :show="showNotesModal" :customer="selectedCustomer" @close="showNotesModal = false"
@@ -178,12 +178,12 @@
 <script setup>
 import {
   PlusIcon,
-  UsersIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
   CheckIcon,
-  ChevronUpDownIcon
+  ChevronUpDownIcon,
+  ArrowPathIcon
 } from '@heroicons/vue/24/outline'
 import {
   Combobox,
@@ -245,6 +245,7 @@ const statusOptions = ref([])
 const statusMap = ref({}) // Status ID to status object mapping
 const usersMap = ref({}) // User ID to user object mapping
 const userQuery = ref('')
+let isInitialLoad = true
 
 // Computed list of users for the filter
 const usersList = computed(() => {
@@ -265,6 +266,25 @@ const filteredUsers = computed(() => {
       (user.email && user.email.toLowerCase().includes(userQuery.value.toLowerCase()))
   })
 })
+
+
+// --- Storage Key ---
+const STORAGE_KEY = 'customerFilters'
+
+// --- Storage'dan filtreleri yükle ---
+const loadFiltersFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+
+    const parsed = JSON.parse(saved)
+    if (parsed.searchTerm) searchTerm.value = parsed.searchTerm
+    if (parsed.statusFilter !== undefined) statusFilter.value = parsed.statusFilter
+    if (parsed.relevantUserFilter) relevantUserFilter.value = parsed.relevantUserFilter
+  } catch (err) {
+    console.warn('Filtreler yüklenemedi:', err)
+  }
+}
 
 // Modals
 const showDeleteModal = ref(false)
@@ -300,10 +320,22 @@ const visiblePages = computed(() => {
 })
 
 // Methods
-const loadCustomers = async (page = 1) => {
-  const filters = getCustomerFilters() 
 
-  // If admin has selected a specific user to filter by, add it to filters
+
+// --- Storage'a filtreleri kaydet ---
+const saveFiltersToStorage = () => {
+  const data = {
+    searchTerm: searchTerm.value,
+    statusFilter: statusFilter.value,
+    relevantUserFilter: relevantUserFilter.value,
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+// --- Müşteri yükleme fonksiyonu ---
+const loadCustomers = async (page = 1) => {
+  const filters = getCustomerFilters()
+
   const customFilters = { ...filters }
   if (authStore.user?.role === 'admin' && relevantUserFilter.value) {
     customFilters.relevantUser = relevantUserFilter.value.id
@@ -313,7 +345,7 @@ const loadCustomers = async (page = 1) => {
     page,
     search: searchTerm.value || undefined,
     status: statusFilter.value,
-    ...customFilters
+    ...customFilters,
   })
 }
 
@@ -331,14 +363,26 @@ const changePage = (page) => {
 }
 
 
-// Watch for search term, status, and user filter changes with debounce
+// --- Debounced izleme (arama + filtre değişiminde çağrılır) ---
 watchDebounced(
   [searchTerm, statusFilter, relevantUserFilter],
   () => {
-    loadCustomers(1) // Reset to page 1 when searching or filtering
+    if (isInitialLoad) return
+    saveFiltersToStorage()
+    loadCustomers(1)
   },
   { debounce: 500 }
 )
+
+onMounted(async () => {
+  loadFiltersFromStorage()
+  await loadCustomers(1)
+
+  isEditable.value = authStore.user?.role != 'doctor' ? true : false
+  isDeleteable.value = authStore.user?.role != 'doctor' ? true : false
+
+  isInitialLoad = false
+})
 
 const confirmDelete = (customer) => {
   customerToDelete.value = customer
@@ -399,102 +443,6 @@ const handleCustomerCreated = async (customer) => {
   useToast().showSuccess('Müşteri başarıyla oluşturuldu')
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('tr-TR')
-}
-
-const getStatusClass = (statusId) => {
-  const status = statusMap.value[statusId]
-  if (!status) {
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-  }
-
-  // Use color from status if available
-  if (status.color) {
-    return `bg-[${status.color}20] text-[${status.color}] dark:bg-[${status.color}30] dark:text-[${status.color}]`
-  }
-
-  // Default colors based on status flags
-  if (status.isSale) {
-    return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-  }
-  if (status.isClosed) {
-    return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-  }
-  if (status.isFirst) {
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-  }
-
-  return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-}
-
-const getStatusText = (statusId) => {
-  const status = statusMap.value[statusId]
-  return status?.name || statusId || 'Bilinmiyor'
-}
-
-// Initialize data
-onMounted(async () => {
-  try {
-    const api = useApi()
-
-    // Load users first
-    try {
-      const usersResponse = await api('/users')
-      if (Array.isArray(usersResponse)) {
-        usersResponse.forEach(user => {
-          usersMap.value[user.id] = user
-        })
-      }
-    } catch (usersError) {
-      console.error('Failed to load users:', usersError)
-    }
-
-    // Load statuses
-    try {
-      const statusResponse = await api('/statuses')
-
-      if (Array.isArray(statusResponse)) {
-        // Create status map for quick lookup with field mapping
-        statusResponse.forEach(status => {
-          // Map snake_case to camelCase for consistency
-          statusMap.value[status.id] = {
-            ...status,
-            isDoctor: status.isDoctor ?? status.is_doctor ?? false,
-            isPricing: status.isPricing ?? status.is_pricing ?? false,
-            isRemindable: status.isRemindable ?? status.is_remindable ?? false,
-            isFirst: status.isFirst ?? status.is_first ?? false,
-            isClosed: status.isClosed ?? status.is_closed ?? false,
-            isSale: status.isSale ?? status.is_sale ?? false
-          }
-        })
-
-        // Create status options for filter dropdown
-        statusOptions.value = statusResponse
-          .filter(status => status.isActive !== false) // Only show active statuses
-          .map(status => ({
-            value: status.id,
-            label: status.name
-          }))
-      }
-    } catch (statusError) {
-      console.error('Failed to load statuses:', statusError)
-    }
-
-    // Load customers
-    await loadCustomers()
-
-    isEditable.value = authStore.user?.role != 'doctor' ? true : false
-    isDeleteable.value = authStore.user?.role != 'doctor' ? true : false
-
-
-  } catch (error) {
-    console.error('Failed to load data:', error)
-  }
-
-
-})
 
 // Page head
 useHead({

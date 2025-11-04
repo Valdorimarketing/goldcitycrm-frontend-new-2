@@ -1,11 +1,9 @@
 <template>
-  <aside
-    :class="[
-      'fixed overflow-x-hidden top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700',
-      sidebarOpen ? 'w-64' : 'w-20',
-      mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-    ]"
-  >
+  <aside :class="[
+    'fixed overflow-x-hidden top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700',
+    sidebarOpen ? 'w-64' : 'w-20',
+    mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+  ]">
     <!-- Logo -->
     <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center">
@@ -20,20 +18,13 @@
       </div>
 
       <!-- Toggle Sidebar Button (Desktop only) -->
-      <button
-        @click="sidebar.toggleSidebar"
+      <button @click="sidebar.toggleSidebar"
         class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-        :title="sidebarOpen ? 'Minimize' : 'Expand'"
-      >
-        <svg
-          :class="[
-            'w-5 h-5 transition-transform duration-200',
-            sidebarOpen ? '' : 'rotate-180'
-          ]"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        :title="sidebarOpen ? 'Minimize' : 'Expand'">
+        <svg :class="[
+          'w-5 h-5 transition-transform duration-200',
+          sidebarOpen ? '' : 'rotate-180'
+        ]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
@@ -45,86 +36,54 @@
         <!-- Collapsible Group -->
         <div v-if="item.type === 'group'">
           <!-- Group Header Button -->
-          <button
-            @click="toggleGroup(item.name)"
-            :class="[
-              'group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
-              'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
-            ]"
-            :title="!sidebarOpen ? item.name : ''"
-          >
+          <button @click="toggleGroup(item.name)" :class="[
+            'group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
+            'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+          ]" :title="!sidebarOpen ? item.name : ''">
             <div class="flex items-center">
-              <component
-                :is="item.icon"
-                :class="[
-                  'flex-shrink-0 w-5 h-5',
-                  sidebarOpen ? 'mr-3' : 'mx-auto'
-                ]"
-              />
+              <component :is="item.icon" :class="[
+                'flex-shrink-0 w-5 h-5',
+                sidebarOpen ? 'mr-3' : 'mx-auto'
+              ]" />
               <transition name="fade">
                 <span v-if="sidebarOpen">{{ item.name }}</span>
               </transition>
             </div>
             <transition name="fade">
-              <svg
-                v-if="sidebarOpen"
-                :class="[
-                  'w-4 h-4 transition-transform duration-200',
-                  openGroups[item.name] ? 'rotate-90' : ''
-                ]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg v-if="sidebarOpen" :class="[
+                'w-4 h-4 transition-transform duration-200',
+                openGroups[item.name] ? 'rotate-90' : ''
+              ]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </transition>
           </button>
 
           <!-- Group Items -->
-          <div
-            v-show="openGroups[item.name] && sidebarOpen"
-            class="mt-1 space-y-1"
-          >
-            <button
-              v-for="subItem in item.items"
-              :key="subItem.name"
-              @click="navigateTo(subItem.href)"
-              :class="[
-                'group flex items-center pl-11 pr-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
-                route.path === subItem.href
-                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-              ]"
-            >
-              <component
-                :is="subItem.icon"
-                class="flex-shrink-0 w-4 h-4 mr-3"
-              />
+          <div v-show="openGroups[item.name] && sidebarOpen" class="mt-1 space-y-1">
+            <button v-for="subItem in item.items" :key="subItem.name" @click="navigateTo(subItem.href)" :class="[
+              'group flex items-center pl-11 pr-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left',
+              route.path === subItem.href
+                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
+            ]">
+              <component :is="subItem.icon" class="flex-shrink-0 w-4 h-4 mr-3" />
               <span>{{ subItem.name }}</span>
             </button>
           </div>
         </div>
 
         <!-- Regular Item -->
-        <button
-          v-else
-          @click="navigateTo(item.href)"
-          :class="[
-            'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left relative',
-            route.path === item.href
-              ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
-              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
-          ]"
-          :title="!sidebarOpen ? item.name : ''"
-        >
-          <component
-            :is="item.icon"
-            :class="[
-              'flex-shrink-0 w-5 h-5',
-              sidebarOpen ? 'mr-3' : 'mx-auto'
-            ]"
-          />
+        <button v-else @click="navigateTo(item.href)" :class="[
+          'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer w-full text-left relative',
+          route.path === item.href
+            ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
+            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+        ]" :title="!sidebarOpen ? item.name : ''">
+          <component :is="item.icon" :class="[
+            'flex-shrink-0 w-5 h-5',
+            sidebarOpen ? 'mr-3' : 'mx-auto'
+          ]" />
           <transition name="fade">
             <span v-if="sidebarOpen">{{ item.name }}</span>
           </transition>
@@ -151,13 +110,16 @@
           </div>
         </transition>
       </div>
+      <div class="relative" v-if="authStore.user?.role == 'user'">
+        <SoundToggle class="mt-4" />
+      </div>
     </div>
   </aside>
 </template>
 
 <script setup>
 import { inject, ref, computed } from 'vue'
-import { useAuthStore } from '~/stores/auth'
+import { useAuthStore } from '~/stores/auth' 
 import {
   HomeIcon,
   UsersIcon,
@@ -187,7 +149,7 @@ const route = useRoute()
 const openGroups = ref({
   'Müşteriler': false,
   'Tanımlamalar': false
-})
+}) 
 
 const toggleGroup = (groupName) => {
   // Eğer sidebar minimize ise, önce sidebar'ı büyüt
@@ -272,10 +234,13 @@ const navigateTo = (path) => {
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
-</style> 
+</style>
