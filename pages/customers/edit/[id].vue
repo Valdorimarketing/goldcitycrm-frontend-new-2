@@ -161,6 +161,14 @@
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="11 haneli kimlik numarası" />
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Hastalık
+                </label>
+                <input v-model="form.patient" type="text"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Hastalık" />
+              </div>
             </div>
           </div>
 
@@ -652,6 +660,7 @@ const form = reactive({
   email: '',
   gender: '',
   birth_date: '',
+  patient: '',
   phone: '',
   sourceId: '',
   job: '',
@@ -756,17 +765,13 @@ const onCityChange = () => {
 }
 
 // Check if selected status is remindable
-const onStatusChange = () => {
-  console.log('Status changed to:', form.status)
-  console.log('All statuses:', statuses.value)
+const onStatusChange = () => { 
 
-  const selectedStatus = statuses.value.find(s => s.id === parseInt(form.status))
-  console.log('Selected status:', selectedStatus)
+  const selectedStatus = statuses.value.find(s => s.id === parseInt(form.status)) 
 
   if (selectedStatus) {
     // Check both is_remindable and isRemindable (different API response formats)
-    const isRemindable = selectedStatus.is_remindable || selectedStatus.isRemindable || false
-    console.log('Is remindable:', isRemindable)
+    const isRemindable = selectedStatus.is_remindable || selectedStatus.isRemindable || false 
 
     showReminderFields.value = isRemindable
     selectedStatusName.value = selectedStatus.name
@@ -824,6 +829,7 @@ const loadCustomer = async () => {
       email: response.email || '',
       gender: response.gender || '',
       birth_date: response.birthDate || response.birth_date || '',
+      patient: response.patient || '',
       phone: response.phone || '',
       sourceId: response.sourceId || response.source_id || '',
       job: response.job || '',
@@ -1111,6 +1117,7 @@ const saveCustomer = async () => {
       email: form.email.trim(),
       gender: form.gender || null,
       birthDate: form.birth_date || null,
+      patient: form.patient || null,
       phone: form.phone?.trim() || null,
       sourceId: form.sourceId ? parseInt(form.sourceId) : null,
       job: form.job?.trim() || null,

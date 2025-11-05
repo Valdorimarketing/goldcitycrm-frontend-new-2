@@ -166,6 +166,27 @@
                           </p>
                         </div>
 
+                        <div>
+                          <label for="patient"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <CalendarIcon class="inline h-4 w-4 mr-1" />
+                            Hastalık
+                          </label>
+                          <input id="patient" v-model="form.patient" type="text"
+                            class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 transition-all" />
+                        </div>
+
+                          <!-- Birth Date -->
+                        <div>
+                          <label for="birth_date"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <CalendarIcon class="inline h-4 w-4 mr-1" />
+                            Doğum Tarihi
+                          </label>
+                          <input id="birth_date" v-model="form.birth_date" type="date"
+                            class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 transition-all" />
+                        </div>
+
                         <!-- Gender -->
                         <div>
                           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -191,16 +212,9 @@
                           </div>
                         </div>
 
-                        <!-- Birth Date -->
-                        <div>
-                          <label for="birth_date"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <CalendarIcon class="inline h-4 w-4 mr-1" />
-                            Doğum Tarihi
-                          </label>
-                          <input id="birth_date" v-model="form.birth_date" type="date"
-                            class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 transition-all" />
-                        </div>
+                      
+
+                        
                       </div>
                     </div>
                   </Transition>
@@ -667,6 +681,7 @@ const form = reactive({
   phone: '',
   gender: '',
   birth_date: '',
+  patient: '',
   title: '',
   job: '',
   company: '',
@@ -1036,6 +1051,7 @@ const handleSubmit = async () => {
   // Add optional fields
   if (form.gender) customerData.gender = form.gender
   if (form.birth_date) customerData.birthDate = String(form.birth_date)
+  if (form.patient?.trim()) customerData.patient = form.patient.trim()
   if (form.title?.trim()) customerData.title = form.title.trim()
   if (form.job?.trim()) customerData.job = form.job.trim()
   if (form.company?.trim()) customerData.company = form.company.trim()

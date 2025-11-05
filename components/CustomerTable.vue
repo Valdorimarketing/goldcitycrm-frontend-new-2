@@ -45,6 +45,7 @@
           <td class="table-cell">{{ getStatusText(customer.status) }}</td>
           <td class="table-cell">{{ customer.source || '-' }}</td>
           <td class="table-cell">{{ customer.relatedTransaction || '-' }}</td>
+          <td class="table-cell">{{ customer.patient || '-' }}</td>
           <td class="table-cell">{{ customer.relevantUserData ? customer.relevantUserData : '-' }}</td>
           <td class="table-cell">{{ customer.isActive ? 'Aktif' : 'Pasif' }}</td>
           <td class="table-cell">{{ formatDate(customer.createdAt) }}</td>
@@ -61,9 +62,9 @@
 
               <!-- Dropdown -->
               <div v-show="showStates.activeId === customer.id"
-                class="fixed left-0 top-0 bottom-0 m-auto z-20 bg-white/40 dark:bg-black/40 w-full h-full flex justify-center items-center">
+                class="fixed left-0 top-0 bottom-0 m-auto z-20 bg-white/50 dark:bg-black/50 w-full h-full flex justify-center items-center">
                 <div
-                  class="flex flex-col h-80 max-w-md rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition">
+                  class="flex flex-col h-96 max-w-lg rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition">
                   <div class="flex flex-wrap gap-2 justify-between items-center px-4 py-1 border-b border-gray-200 dark:border-gray-700">
                     <div class="text-lg font-semibold">İşlemler</div>
                     <button @click="toggleShow(customer.id)" class="p-2 rounded-md">
@@ -73,49 +74,49 @@
                   <div class="p-3 grid grid-cols-3 gap-2">
                     <NuxtLink :to="`/customers/show/${customer.id}`"
                       class="flex flex-col items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                      <EyeIcon class="h-4 w-4 text-indigo-500" />
+                      <EyeIcon class="h-8 w-8 text-indigo-500" />
                       Görüntüle
                     </NuxtLink>
 
                     <button @click="emit('show-history', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <ClockIcon class="h-4 w-4 text-blue-500" />
+                      <ClockIcon class="h-8 w-8 text-blue-500" />
                       Geçmiş
                     </button>
 
                     <button @click="emit('show-notes', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <DocumentTextIcon class="h-4 w-4 text-amber-500" />
+                      <DocumentTextIcon class="h-8 w-8 text-amber-500" />
                       Notlar
                     </button>
 
                     <button @click="emit('show-doctor', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <UsersIcon class="h-4 w-4 text-purple-500" />
+                      <UsersIcon class="h-8 w-8 text-purple-500" />
                       Doktor Görüşü
                     </button>
 
                     <button @click="emit('show-services', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <ShoppingBagIcon class="h-4 w-4 text-green-500" />
+                      <ShoppingBagIcon class="h-8 w-8 text-green-500" />
                       Hizmetler
                     </button>
 
                     <button @click="emit('show-files', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <FolderIcon class="h-4 w-4 text-cyan-500" />
+                      <FolderIcon class="h-8 w-8 text-cyan-500" />
                       Müşteri Dosyaları
                     </button>
 
                     <NuxtLink v-if="isEditable" :to="`/customers/edit/${customer.id}`"
                       class="flex flex-col items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <PencilIcon class="h-4 w-4 text-yellow-500" />
+                      <PencilIcon class="h-8 w-8 text-yellow-500" />
                       Düzenle
                     </NuxtLink>
 
                     <button v-if="isDeleteable" @click="emit('confirm-delete', customer)"
                       class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
-                      <TrashIcon class="h-4 w-4 text-red-500" />
+                      <TrashIcon class="h-8 w-8 text-red-500" />
                       Sil
                     </button>
                   </div>
@@ -186,6 +187,7 @@ const columns = [
   { label: 'Durum', key: 'status' },
   { label: 'Kaynak', key: 'source' },
   { label: 'İlgilenilen Konu', key: 'relatedTransaction' },
+  { label: 'Hastalık', key: 'patient' },
   { label: 'Atanan', key: 'relevantUserData' },
   { label: 'Aktif', key: 'isActive' },
   { label: 'Eklenme Tarihi', key: 'createdAt' },
