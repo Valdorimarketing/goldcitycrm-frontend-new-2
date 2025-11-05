@@ -202,7 +202,8 @@ definePageMeta({
 
 const isEditable = ref(true);
 const isDeleteable = ref(true);
-const authStore = useAuthStore()
+const authStore = useAuthStore() 
+const api = useApi()
 
 // Permissions
 const { getCustomerFilters } = usePermissions()
