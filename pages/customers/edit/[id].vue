@@ -169,6 +169,14 @@
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Hastalık" />
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  URL
+                </label>
+                <input :value="form.url" type="text" disabled title="Değiştirilemez"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md"
+                  placeholder="URL" />
+              </div>
             </div>
           </div>
 
@@ -679,7 +687,8 @@ const form = reactive({
   relevant_user: '',
   description: '',
   relatedTransaction: '',
-  imageUrl: ''
+  imageUrl: '',
+  url: ''
 })
 
 // Image upload
@@ -848,7 +857,8 @@ const loadCustomer = async () => {
       relevant_user: response.relevantUser || response.relevant_user || '',
       description: response.description || '',
       relatedTransaction: response.relatedTransaction || '',
-      imageUrl: response.image || response.imageUrl || ''
+      imageUrl: response.image || response.imageUrl || '',
+      url: response.url || ''
     })
 
     // Check if loaded status is remindable

@@ -3,9 +3,18 @@
     <!-- Header -->
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Havuz Verileri</h1>
+        <div class="flex items-center space-x-3">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Havuz Verileri</h1>
+
+          <!-- Sinyal animasyonu -->
+          <div class="relative w-4 h-4">
+            <span class="absolute left-0 bottom-0 right-0 top-0 inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </div>
+        </div>
+
         <p class="mt-2 text-sm text-gray-700">
-          Havuz verilerini buradan görebilirsiniz.
+          Havuz verileri canlı olarak listelenmektedir.
         </p>
       </div>
       <div class="mt-4 sm:mt-0 flex gap-3">
@@ -55,23 +64,19 @@
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th v-if="activeTab === 'unassigned'" class="table-header text-gray-700 dark:text-gray-300 w-12">
-                <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll"
-                  class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-              </th>
+            <tr>  
               <th class="table-header text-gray-700 dark:text-gray-300">İsim</th>
               <th class="table-header text-gray-700 dark:text-gray-300">E-posta</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Telefon</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Kaynak</th>
+              <th class="table-header text-gray-700 dark:text-gray-300">URL</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Eklenme Tarihi</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Bekleme Süresi</th>
               <th v-if="activeTab === 'unassigned'" class="table-header text-gray-700 dark:text-gray-300">Atama</th>
               <th v-if="activeTab === 'assigned'" class="table-header text-gray-700 dark:text-gray-300">Atanan</th>
               <th class="table-header text-gray-700 dark:text-gray-300">İşlemler</th>
             </tr>
-            <tr>
-              <th v-if="activeTab === 'unassigned'" class="px-3 py-2"></th>
+            <tr> 
               <th class="px-3 py-2">
                 <input v-model="columnFilters.name" type="text"
                   class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -91,7 +96,12 @@
                 <input v-model="columnFilters.source" type="text"
                   class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Filtre..." />
-              </th>
+              </th> 
+              <th class="px-3 py-2">
+                <input v-model="columnFilters.url" type="text"
+                  class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  placeholder="Filtre..." />
+              </th> 
               <th class="px-3 py-2">
                 <input v-model="columnFilters.createdAt" type="text"
                   class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -105,11 +115,6 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr v-for="customer in filteredCustomers" :key="customer.id">
-              <td v-if="activeTab === 'unassigned'" class="table-cell w-12">
-                <input type="checkbox" :checked="isCustomerSelected(customer.id)"
-                  @change="toggleCustomerSelection(customer.id)"
-                  class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-              </td>
               <td class="table-cell">
                 <div class="flex items-center">
                   <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
@@ -134,6 +139,9 @@
               </td>
               <td class="table-cell">
                 <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.source || '-' }}</div>
+              </td>
+              <td class="table-cell">
+                <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.url || '-' }}</div>
               </td>
               <td class="table-cell">
                 <div class="text-sm text-gray-900 dark:text-gray-100">
@@ -391,7 +399,7 @@ import {
   ExclamationTriangleIcon,
   EyeIcon,
   ClockIcon,
-  DocumentTextIcon, 
+  DocumentTextIcon,
   ShoppingBagIcon,
   PencilIcon,
   TrashIcon,
@@ -426,8 +434,7 @@ const isEditable = ref(true);
 const isDeleteable = ref(true);
 
 // Search and filters
-const searchTerm = ref('')
-const statusFilter = ref('')
+ 
 const statusOptions = ref([])
 const statusMap = ref({})
 const usersMap = ref({}) // User ID to user object mapping
@@ -441,6 +448,7 @@ const columnFilters = ref({
   name: '',
   email: '',
   phone: '',
+  url: '',
   source: '',
   createdAt: ''
 })
@@ -507,6 +515,13 @@ const filteredCustomers = computed(() => {
     )
   }
 
+  if (columnFilters.value.url) {
+    const urlFilter = columnFilters.value.url.toLowerCase()
+    filtered = filtered.filter(customer =>
+      customer.url?.toLowerCase().includes(urlFilter)
+    )
+  }
+
   if (columnFilters.value.source) {
     const sourceFilter = columnFilters.value.source.toLowerCase()
     filtered = filtered.filter(customer =>
@@ -569,20 +584,7 @@ const isAllSelected = computed(() => {
 const isCustomerSelected = (customerId) => {
   return selectedCustomers.value.includes(customerId)
 }
-
-// Methods
-const selectUser = (user) => {
-  selectedUser.value = user
-  userSearch.value = `${user.name} (${user.email})`
-  showUserDropdown.value = false
-}
-
-const hideUserDropdown = () => {
-  setTimeout(() => {
-    showUserDropdown.value = false
-  }, 200)
-}
-
+ 
 const toggleCustomerSelection = (customerId) => {
   const index = selectedCustomers.value.indexOf(customerId)
   if (index > -1) {
@@ -599,41 +601,7 @@ const toggleSelectAll = () => {
     selectedCustomers.value = filteredCustomers.value.map(customer => customer.id)
   }
 }
-
-const assignSelectedCustomers = async () => {
-  if (!selectedUser.value || selectedCustomers.value.length === 0) {
-    return
-  }
-
-  try {
-    const api = useApi()
-
-    // Update each selected customer
-    const updatePromises = selectedCustomers.value.map(customerId =>
-      api(`/customers/${customerId}`, {
-        method: 'PATCH',
-        body: {
-          relevantUser: selectedUser.value.id
-        }
-      })
-    )
-
-    await Promise.all(updatePromises)
-
-    // Reset selections
-    selectedCustomers.value = []
-    selectedUser.value = null
-    userSearch.value = ''
-
-    // Refetch customers to update the list
-    await fetchCustomers(pagination.value.page)
-
-    console.log('Customers assigned successfully')
-  } catch (error) {
-    console.error('Error assigning customers:', error)
-  }
-}
-
+ 
 // Row-level assignment methods
 const initializeRowAssignment = (customerId) => {
   if (!rowAssignments.value[customerId]) {
@@ -779,6 +747,7 @@ const resetFilters = () => {
     name: '',
     email: '',
     phone: '',
+    url: '',
     source: '',
     createdAt: ''
   }
