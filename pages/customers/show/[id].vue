@@ -105,6 +105,10 @@
                   <UserIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
                   <span class="text-gray-700 dark:text-gray-300">{{ getGenderText(customer.gender) }}</span>
                 </div>
+                <div v-if="customer.url" class="flex items-start text-sm" title="Hangi linkten geldi?">
+                  <GlobeAltIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
+                  <span class="text-gray-700 dark:text-gray-300">{{ customer.url }}</span>
+                </div>
                 <div v-if="customer.birth_date" class="flex items-center text-sm">
                   <CalendarIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
                   <span class="text-gray-700 dark:text-gray-300">{{ formatBirthDate(customer.birth_date) }}</span>
