@@ -37,135 +37,191 @@
     </div>
 
     <!-- New Customers Cards (Admin Only) -->
-    <div v-if="isAdmin" class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+    <div v-if="isAdmin" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Unassigned New Customers -->
-       
-       <div class="card">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Müşteri Dağılımı</h3>
-          </div>
 
-          <!-- 2 Kolonlu Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- Sol Kolon: Henüz Atanmamış Kişiler -->
-            <div class="border-r border-gray-200 dark:border-gray-700 pr-0 lg:pr-6">
-              <div class="flex items-center justify-between mb-4">
-                <h4 class="text-base font-semibold text-gray-900 dark:text-white">Henüz Atanmamış Kişiler</h4>
-                <NuxtLink to="/pool-data?tab=unassigned"
-                  class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium transition-colors">
-                  Tümünü gör
-                </NuxtLink>
-              </div>
+      <div class="card col-span-2">
+        <!-- 2 Kolonlu Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-              <!-- Loading State -->
-              <div v-if="loadingUnassignedCustomers" class="space-y-3">
-                <div v-for="i in 3" :key="i" class="flex items-center space-x-3">
-                  <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  <div class="flex-1">
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
-                  </div>
+          <!-- Sol Kolon: Henüz Atanmamış Kişiler -->
+          <div class="border-r border-gray-200 dark:border-gray-700 pr-0 lg:pr-6">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-base font-semibold text-gray-900 dark:text-white">Henüz Atanmamış Kişiler</h4>
+              <NuxtLink to="/pool-data?tab=unassigned"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium transition-colors">
+                Tümünü gör
+              </NuxtLink>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loadingUnassignedCustomers" class="space-y-3">
+              <div v-for="i in 3" :key="i" class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                <div class="flex-1">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+                  <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
                 </div>
-              </div>
-
-              <!-- Data -->
-              <div v-else-if="unassignedNewCustomers.length > 0" class="space-y-3">
-                <div v-for="customer in unassignedNewCustomers as any" :key="customer.id"
-                  class="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
-                  @click="navigateTo(`/customers/show/${customer.id}`)">
-                  <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                    <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                      {{ customer.name?.charAt(0) || '?' }}{{ customer.surname?.charAt(0) || '' }}
-                    </span>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {{ customer.name || 'İsimsiz' }} {{ customer.surname || '' }}
-                    </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {{ customer.email || customer.phone || '-' }}
-                    </p>
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ formatDate(customer.createdAt) }}
-                  </div>
-                </div>
-
-                <!-- Total Count -->
-                <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Toplam: <span class="text-gray-900 dark:text-white">{{ unassignedNewCustomersTotal }}</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Empty State -->
-              <div v-else class="text-center py-6">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Henüz atanmamış kişi bulunmuyor</p>
               </div>
             </div>
 
-            <!-- Sağ Kolon: Bugünkü Atamalar -->
-            <div>
-                <div class="flex items-center justify-between mb-4">
-                <h4 class="text-base font-semibold text-gray-900 dark:text-white">Bugünkü Atamalar</h4>
-                <NuxtLink to="/assignments?tab=today"
-                  class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium transition-colors">
-                  Tümünü gör
-                </NuxtLink>
-              </div>
-
-              <!-- Loading State -->
-              <div v-if="loadingTodayAssignments" class="space-y-3">
-                <div v-for="i in 3" :key="i" class="flex items-center justify-between p-3">
-                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2"></div>
-                  <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16"></div>
+            <!-- Data -->
+            <div v-else-if="unassignedNewCustomers.length > 0" class="space-y-3">
+              <div v-for="customer in unassignedNewCustomers as any" :key="customer.id"
+                class="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
+                @click="navigateTo(`/customers/show/${customer.id}`)">
+                <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    {{ customer.name?.charAt(0) || '?' }}
+                  </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {{ customer.name || 'İsimsiz' }}
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {{ customer.email || customer.phone || '-' }}
+                  </p>
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ formatDate(customer.createdAt) }}
                 </div>
               </div>
 
-              <!-- Data -->
-              <div v-else-if="todayAssignments.length > 0" class="space-y-2">
-                <div v-for="assignment in todayAssignments as any" :key="assignment.salesRepId"
-                  class="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              <!-- Total Count -->
+              <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Toplam: <span class="text-gray-900 dark:text-white">{{ unassignedNewCustomersTotal }}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-6">
+              <p class="text-sm text-gray-500 dark:text-gray-400">Henüz atanmamış kişi bulunmuyor</p>
+            </div>
+          </div>
+
+          <!-- Sağ Kolon: Bugünkü Atamalar -->
+
+          <!-- Sağ Kolon: Bugünkü Atamalar -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-base font-semibold text-gray-900 dark:text-white">Atamalar</h4>
+              <NuxtLink to="/assignments?tab=today"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium transition-colors">
+                Tümünü gör
+              </NuxtLink>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="loadingTodayAssignments" class="space-y-3">
+              <div v-for="i in 3" :key="i" class="flex items-center justify-between p-3">
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2"></div>
+                <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16"></div>
+              </div>
+            </div>
+
+            <!-- Data -->
+            <div v-else-if="todayAssignments.length > 0" class="space-y-3">
+              <div v-for="assignment in todayAssignments" :key="assignment.salesRepId"
+                class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors border border-gray-200 dark:border-gray-700">
+
+                <!-- Kullanıcı Başlığı -->
+                <div class="flex items-center justify-between mb-3">
                   <div class="flex items-center space-x-3">
-                    <div class="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                      <span class="text-xs font-medium text-purple-600 dark:text-purple-400">
+                    <div
+                      class="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                      <span class="text-sm font-semibold text-purple-600 dark:text-purple-400">
                         {{ assignment.salesRepName?.charAt(0) || '?' }}
                       </span>
                     </div>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ assignment.salesRepName }}
-                    </span>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        {{ assignment.salesRepName }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Toplam: {{ assignment.totalCount }} atama
+                      </p>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                      {{ assignment.count }} atama
-                    </span>
-                  </div>
+                  <span
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                    {{ assignment.totalCount }}
+                  </span>
                 </div>
 
-                <!-- Total Count -->
-                <div class="pt-3 border-t border-gray-200 dark:border-gray-700 mt-4">
-                  <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Toplam Atama:
+                <!-- Detaylı İstatistikler -->
+                <div class="grid grid-cols-3 gap-2">
+                  <!-- Yeni Data -->
+                  <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Yeni Data</p>
+                    <p class="text-lg font-bold text-green-600 dark:text-green-400">
+                      {{ assignment.newDataCount }}
                     </p>
-                    <span class="text-lg font-bold text-gray-900 dark:text-white">
-                      {{ totalTodayAssignments }}
-                    </span>
+                  </div>
+
+                  <!-- Dinamik Arama -->
+                  <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2 text-center">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Dinamik Arama</p>
+                    <p class="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                      {{ assignment.dynamicSearchCount }}
+                    </p>
+                  </div>
+
+                  <!-- Eski Data -->
+                  <div class="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-2 text-center">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Eski Data</p>
+                    <p class="text-lg font-bold text-gray-600 dark:text-gray-400">
+                      {{ assignment.oldDataCount }}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <!-- Empty State -->
-              <div v-else class="text-center py-6">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Bugün henüz atama yapılmadı</p>
+              <!-- Total Count -->
+              <div class="pt-3 border-t border-gray-200 dark:border-gray-700 mt-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Toplam Atama:
+                  </p>
+                  <span class="text-lg font-bold text-gray-900 dark:text-white">
+                    {{ totalTodayAssignments }}
+                  </span>
+                </div>
+
+                <!-- Genel İstatistikler -->
+                <div class="grid grid-cols-3 gap-2 mt-3">
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Yeni</p>
+                    <p class="text-sm font-semibold text-green-600 dark:text-green-400">
+                      {{ totalNewData }}
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Dinamik</p>
+                    <p class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+                      {{ totalDynamicSearch }}
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Eski</p>
+                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                      {{ totalOldData }}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
+            <!-- Empty State -->
+            <div v-else class="text-center py-6">
+              <p class="text-sm text-gray-500 dark:text-gray-400">Bugün henüz atama yapılmadı</p>
+            </div>
           </div>
+
         </div>
+      </div>
 
 
 
@@ -452,12 +508,23 @@ const userMeetingsForCalendar = ref([]) as any
 
 // Bugünkü atamalar için state'ler
 const loadingTodayAssignments = ref(false)
-const todayAssignments = ref([])
+const todayAssignments = ref([]) as any
 
 const totalTodayAssignments = computed(() => {
-  return todayAssignments.value.reduce((sum: number, assignment: any) => sum + (assignment.count || 0), 0)
+  return todayAssignments.value.reduce((sum:any, a:any) => sum + a.totalCount, 0)
 })
 
+const totalNewData = computed(() => {
+  return todayAssignments.value.reduce((sum:any, a:any) => sum + a.newDataCount, 0)
+})
+
+const totalDynamicSearch = computed(() => {
+  return todayAssignments.value.reduce((sum:any, a:any) => sum + a.dynamicSearchCount, 0)
+})
+
+const totalOldData = computed(() => {
+  return todayAssignments.value.reduce((sum:any, a:any) => sum + a.oldDataCount, 0)
+})
 
 
 
@@ -532,7 +599,7 @@ const calculateStats = async () => {
     let allSales = Array.isArray(response?.data) ? response.data : []
 
     // Sale page ile birebir hesaplayan fonksiyon
-    const calcTotalAmount = (products:any) => {
+    const calcTotalAmount = (products: any) => {
       if (!products || !Array.isArray(products)) return 0
       return products.reduce((sum, p) => {
         return sum + (p.totalPrice || p.offer || p.price || 0)
@@ -540,7 +607,7 @@ const calculateStats = async () => {
     }
 
     // Para birimini sales page ile aynı mantıkta çek
-    const getCurrency = (products:any) => {
+    const getCurrency = (products: any) => {
       if (!products || !products.length) return 'TRY'
       return (
         products[0]?.currency?.code ||
@@ -557,7 +624,7 @@ const calculateStats = async () => {
     const cm = now.getMonth()
     const cy = now.getFullYear()
 
-    allSales.forEach((sale:any) => {
+    allSales.forEach((sale: any) => {
       const amount = calcTotalAmount(sale.salesProducts)
       const currency = getCurrency(sale.salesProducts)
 
@@ -586,7 +653,7 @@ const calculateStats = async () => {
 }
 
 
-const formatStatsValue = (data:any) => {
+const formatStatsValue = (data: any) => {
   if (!data || typeof data !== 'object') return '-'
 
   return Object.entries(data)
@@ -635,7 +702,7 @@ const fetchRecentCustomers = async () => {
       recentCustomers.value = []
     }
 
-    
+
     totalCustomers.value = recentCustomers.value.length;
 
   } catch (error) {
@@ -687,10 +754,10 @@ const fetchUpcomingMeetings = async () => {
       upcomingMeetings.value = []
     }
 
-    
-    
+
+
     totalMeetings.value = upcomingMeetings.value.length;
-    
+
   } catch (error) {
     console.error('Error fetching upcoming meetings:', error)
     upcomingMeetings.value = []

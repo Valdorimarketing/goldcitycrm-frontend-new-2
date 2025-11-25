@@ -18,9 +18,8 @@
           Havuz verileri canlı olarak listelenmektedir.
         </p>
       </div>
-      <div class="mt-4 sm:mt-0 flex gap-3"> 
-        <button @click="reFreshList()"
-          class="btn-secondary">
+      <div class="mt-4 sm:mt-0 flex gap-3">
+        <button @click="reFreshList()" class="btn-secondary">
           Yenile
         </button>
         <button @click="showCreateModal = true"
@@ -235,9 +234,31 @@
                 </div>
               </td>
               <td v-if="activeTab === 'assigned'" class="table-cell">
-                <div class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ customer?.relevantUserData || '-' }}
+
+                <div class="flex items-center gap-2">
+                  <div v-if="customer.relevantUserData && customer.relevantUserData.avatar"
+                    class="h-10 w-10 rounded-full overflow-hidden">
+                    <img :src="path + customer.relevantUserData.avatar" alt="Avatar"
+                      class="h-full w-full object-cover" />
+                  </div>
+                  <div v-else
+                    class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                    <span class="text-sm font-medium text-indigo-600 dark:text-indigo-300">
+                      {{ customer.relevantUserData?.name ? customer.relevantUserData?.name.charAt(0).toUpperCase() : 'A'
+                      }}
+                    </span>
+                  </div>
+                  <div class="relative flex flex-col">
+                    <span class="text-sm text-gray-900 dark:text-gray-100">
+                      {{ customer.relevantUserData ? customer.relevantUserData?.name : 'Atanmamış' }}
+                    </span>
+                    <span v-if="customer.relevantUserData?.lastActiveTime"
+                      class="bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      son görülme: {{ getLastSeen(customer.relevantUserData?.lastActiveTime) }}
+                    </span>
+                  </div>
                 </div>
+
               </td>
 
 
@@ -393,6 +414,9 @@ import {
 import { useAuthStore } from '~/stores/auth'
 const { $dayjs } = useNuxtApp()
 
+const config = useRuntimeConfig()
+const path = config.public.apiBase
+
 definePageMeta({
   middleware: ['auth', 'admindoctor'] // Only admin can access pool data
 })
@@ -475,6 +499,10 @@ const toggleShow = (id) => {
 const hasActiveFilters = computed(() => {
   return Object.values(columnFilters.value).some(v => v !== '')
 })
+
+const getLastSeen = (lastActiveTime) => {
+  return $dayjs(lastActiveTime).fromNow()
+}
 
 
 const getCustomerUrl = (customer) => {
@@ -638,7 +666,7 @@ const fetchCustomers = async (page = 1) => {
   }
 }
 
- 
+
 
 const changePage = (page) => {
   if (page >= 1 && page <= pagination.value.totalPages) {
@@ -724,7 +752,7 @@ const formatDate = (dateString) => {
 }
 
 const reFreshList = async () => {
-    await fetchCustomers(pagination.value.page)
+  await fetchCustomers(pagination.value.page)
 }
 
 

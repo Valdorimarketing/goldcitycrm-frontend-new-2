@@ -93,7 +93,7 @@
                 <div title="Atanan Sağlık Danışmanı" v-if="customer?.relevantUserData"
                   class="flex items-center text-sm">
                   <UserIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  {{ customer?.relevantUserData }}
+                  {{ customer?.relevantUserData.name }}
                 </div>
 
                 <!-- Phone Number - Click to reveal -->

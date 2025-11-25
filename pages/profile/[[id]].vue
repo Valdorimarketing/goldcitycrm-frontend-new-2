@@ -48,177 +48,177 @@
       <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Sol Kolon: Profil ve Özet Kartlar -->
         <div class="relative">
-          <div class="space-y-6 sticky top-3">
-            <!-- Profil Kartı -->
-            <div class="card text-center">
-              <div class="flex justify-center mb-4">
-                <div class="relative">
-                  <img
-                    v-if="profileUser?.avatar"
-                    :src="path + profileUser.avatar"
-                    alt="Avatar"
-                    class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md"
-                  />
-                  <div
-                    v-else
-                    class="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-2xl font-bold text-white border-4 border-indigo-500 shadow-md"
-                  >
-                    {{ profileUser?.name?.charAt(0) || 'U' }}
-                  </div>
-                  <!-- Online Badge -->
-                  <span
-                    v-if="isUserOnline"
-                    class="absolute bottom-0 right-0 block"
-                  >
-                    <span class="relative flex h-4 w-4">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gray-800"></span>
-                    </span>
+        <div class="space-y-6 sticky top-6">
+          <!-- Profil Kartı -->
+          <div class="card text-center">
+            <div class="flex justify-center mb-4">
+              <div class="relative">
+                <img
+                  v-if="profileUser?.avatar"
+                  :src="path + profileUser.avatar"
+                  alt="Avatar"
+                  class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md"
+                />
+                <div
+                  v-else
+                  class="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-2xl font-bold text-white border-4 border-indigo-500 shadow-md"
+                >
+                  {{ profileUser?.name?.charAt(0) || 'U' }}
+                </div>
+                <!-- Online Badge -->
+                <span
+                  v-if="isUserOnline"
+                  class="absolute bottom-0 right-0 block"
+                >
+                  <span class="relative flex h-4 w-4">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-4 w-4 bg-green-500 border-2 border-white dark:border-gray-800"></span>
                   </span>
-                  <span
-                    v-else
-                    class="absolute bottom-0 right-0 block h-4 w-4 rounded-full bg-gray-400 ring-2 ring-white dark:ring-gray-800"
-                  ></span>
-                </div>
-              </div>
-
-              <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-1">
-                {{ profileUser?.name || 'Bilinmeyen Kullanıcı' }}
-              </h2>
-
-              <p class="text-indigo-500 dark:text-indigo-400 mb-1 text-sm font-medium">
-                {{ getRoleLabel(profileUser?.role) }}
-              </p>
-
-              <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                {{ profileUser?.email || '-' }}
-              </p>
-
-              <!-- User Group & Team Info -->
-              <div v-if="profileUser?.userGroup || profileUser?.userTeam" class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4 space-y-2">
-                <div v-if="profileUser?.userGroup" class="text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Grup:</span>
-                  <span class="ml-2 font-semibold text-gray-900 dark:text-white">{{ profileUser.userGroup.name }}</span>
-                </div>
-                <div v-if="profileUser?.userTeam" class="text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Takım:</span>
-                  <span class="ml-2 font-semibold text-gray-900 dark:text-white">{{ profileUser.userTeam.name }}</span>
-                </div>
-              </div>
-
-              <!-- Quick Stats -->
-              <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Bugün Eklenen:</span>
-                  <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.added }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Güncellenen:</span>
-                  <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.updated }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Not Eklenen:</span>
-                  <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.notes }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600 dark:text-gray-400">Satış:</span>
-                  <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.sales }}</span>
-                </div>
-              </div>
-
-              <!-- Last Seen -->
-              <div v-if="profileUser?.lastActiveTime" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  Son görülme: {{ formatTimeAgo(profileUser.lastActiveTime) }}
-                </p>
+                </span>
+                <span
+                  v-else
+                  class="absolute bottom-0 right-0 block h-4 w-4 rounded-full bg-gray-400 ring-2 ring-white dark:ring-gray-800"
+                ></span>
               </div>
             </div>
 
-            <!-- Atanan Müşteriler Kartı -->
-            <div class="card">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Atanan Müşteriler</h3>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
-                  {{ assignedCustomers.total }}
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-1">
+              {{ profileUser?.name || 'Bilinmeyen Kullanıcı' }}
+            </h2>
+
+            <p class="text-indigo-500 dark:text-indigo-400 mb-1 text-sm font-medium">
+              {{ getRoleLabel(profileUser?.role) }}
+            </p>
+
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
+              {{ profileUser?.email || '-' }}
+            </p>
+
+            <!-- User Group & Team Info -->
+            <div v-if="profileUser?.userGroup || profileUser?.userTeam" class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4 space-y-2">
+              <div v-if="profileUser?.userGroup" class="text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Grup:</span>
+                <span class="ml-2 font-semibold text-gray-900 dark:text-white">{{ profileUser.userGroup.name }}</span>
+              </div>
+              <div v-if="profileUser?.userTeam" class="text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Takım:</span>
+                <span class="ml-2 font-semibold text-gray-900 dark:text-white">{{ profileUser.userTeam.name }}</span>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Bugün Eklenen:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.added }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Güncellenen:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.updated }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Not Eklenen:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.notes }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Satış:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ todayStats.sales }}</span>
+              </div>
+            </div>
+
+            <!-- Last Seen -->
+            <div v-if="profileUser?.lastActiveTime" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Son görülme: {{ formatTimeAgo(profileUser.lastActiveTime) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Atanan Müşteriler Kartı -->
+          <div class="card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Atanan Müşteriler</h3>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                {{ assignedCustomers.total }}
+              </span>
+            </div>
+
+            <!-- Loading -->
+            <div v-if="loadingCustomers" class="space-y-3">
+              <div v-for="i in 3" :key="i" class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                <div class="flex-1">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+                  <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Stats -->
+            <div v-else class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="flex items-center space-x-2">
+                  <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">İşlem Bekleyen</span>
+                </div>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ assignedCustomers.pending }}
                 </span>
               </div>
 
-              <!-- Loading -->
-              <div v-if="loadingCustomers" class="space-y-3">
-                <div v-for="i in 3" :key="i" class="flex items-center space-x-3">
-                  <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  <div class="flex-1">
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
-                  </div>
+              <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="flex items-center space-x-2">
+                  <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">Hatırlatmalı</span>
                 </div>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ assignedCustomers.withReminder }}
+                </span>
               </div>
 
-              <!-- Customer Stats -->
-              <div v-else class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">İşlem Bekleyen</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.pending }}
-                  </span>
+              <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="flex items-center space-x-2">
+                  <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">Satış</span>
                 </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-blue-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Hatırlatmalı</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.withReminder }}
-                  </span>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Satış</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.sales }}
-                  </span>
-                </div>
-
-                <!-- View All Button -->
-                <NuxtLink
-                  :to="isOwnProfile ? '/customers' : `/customers?user=${profileUserId}`"
-                  class="block w-full text-center text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium mt-4"
-                >
-                  {{ isOwnProfile ? 'Tüm Müşterileri Görüntüle' : 'Kullanıcının Müşterilerini Görüntüle' }} →
-                </NuxtLink>
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ assignedCustomers.sales }}
+                </span>
               </div>
+
+              <!-- View All Button -->
+              <NuxtLink
+                :to="isOwnProfile ? '/customers' : `/customers?user=${profileUserId}`"
+                class="block w-full text-center text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium mt-4"
+              >
+                {{ isOwnProfile ? 'Tüm Müşterileri Görüntüle' : 'Kullanıcının Müşterilerini Görüntüle' }} →
+              </NuxtLink>
             </div>
+          </div>
 
-            <!-- Bugünün Hedefleri -->
-            <div class="card">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Bugünün Hedefleri</h3>
-              <div class="space-y-3">
-                <div class="flex items-center space-x-3">
-                  <input type="checkbox" :checked="todayStats.added >= 5" class="h-4 w-4 text-indigo-600 rounded" disabled />
-                  <span class="text-sm text-gray-700 dark:text-gray-300">5 yeni müşteri ekle</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                  <input type="checkbox" :checked="todayStats.updated >= 10" class="h-4 w-4 text-indigo-600 rounded" disabled />
-                  <span class="text-sm text-gray-700 dark:text-gray-300">10 müşteri güncelle</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                  <input type="checkbox" :checked="todayStats.notes >= 5" class="h-4 w-4 text-indigo-600 rounded" disabled />
-                  <span class="text-sm text-gray-700 dark:text-gray-300">5 not ekle</span>
-                </div>
-                <div class="flex items-center space-x-3">
-                  <input type="checkbox" :checked="todayStats.sales >= 2" class="h-4 w-4 text-indigo-600 rounded" disabled />
-                  <span class="text-sm text-gray-700 dark:text-gray-300">2 satış yap</span>
-                </div>
+          <!-- Bugünün Hedefleri -->
+          <div class="card">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Bugünün Hedefleri</h3>
+            <div class="space-y-3">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" :checked="todayStats.added >= 5" class="h-4 w-4 text-indigo-600 rounded" disabled />
+                <span class="text-sm text-gray-700 dark:text-gray-300">5 yeni müşteri ekle</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" :checked="todayStats.updated >= 10" class="h-4 w-4 text-indigo-600 rounded" disabled />
+                <span class="text-sm text-gray-700 dark:text-gray-300">10 müşteri güncelle</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" :checked="todayStats.notes >= 5" class="h-4 w-4 text-indigo-600 rounded" disabled />
+                <span class="text-sm text-gray-700 dark:text-gray-300">5 not ekle</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" :checked="todayStats.sales >= 2" class="h-4 w-4 text-indigo-600 rounded" disabled />
+                <span class="text-sm text-gray-700 dark:text-gray-300">2 satış yap</span>
               </div>
             </div>
           </div>
+        </div>
         </div>
 
         <!-- Sağ Kolon: Timeline -->
@@ -295,17 +295,22 @@
 
                         <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
                           <!-- Customer Info -->
-                          <div v-if="event.customerData" class="flex items-center gap-2 mb-2">
+                          <div v-if="event.customer" class="flex items-center gap-2 mb-2">
                             <div class="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
                               <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                                {{ event.customerData.name?.charAt(0) || '?' }}
+                                {{ event.customerData?.name?.charAt(0) || 'M' }}
                               </span>
                             </div>
                             <NuxtLink
                               :to="`/customers/show/${event.customer}`"
                               class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300"
                             >
-                              {{ event.customerData.name }} {{ event.customerData.surname }}
+                              <span v-if="event.customerData">
+                                {{ event.customerData.name }} {{ event.customerData.surname }}
+                              </span>
+                              <span v-else class="text-gray-500">
+                                Müşteri #{{ event.customer }}
+                              </span>
                             </NuxtLink>
                           </div>
 
@@ -423,7 +428,6 @@ const loadingCustomers = ref(true)
 const loadingTimeline = ref(true)
 const loadingMore = ref(false)
 const profileUser = ref(null)
-const customerCache = ref({}) // Müşteri cache'i
 
 const todayStats = ref({
   added: 0,
@@ -674,51 +678,19 @@ const fetchTimeline = async (page = 1) => {
       query: {
         userId,
         page,
-        limit: 20,
-        includeCustomer: true // Backend'e müşteri bilgilerini de döndürmesini söyle
+        limit: 20
       }
     })
 
-    let activities = Array.isArray(response) ? response : (response.data || [])
+    // Backend artık { data: [], meta: {} } formatında dönüyor
+    const result = response.data ? response : { data: response, meta: {} }
+    let activities = result.data || []
 
-    // Müşteri ID'lerini topla (cache'de olmayanları)
-    const customerIds = [...new Set(activities.map(a => a.customer).filter(Boolean))]
-    const uncachedIds = customerIds.filter(id => !customerCache.value[id] && !activities.find(a => a.customer === id && a.customerData))
-    
-    // Cache'de olmayan müşterileri çek
-    if (uncachedIds.length > 0) {
-      const BATCH_SIZE = 50
-      
-      for (let i = 0; i < uncachedIds.length; i += BATCH_SIZE) {
-        const batchIds = uncachedIds.slice(i, i + BATCH_SIZE)
-        
-        try {
-          const customersResponse = await api('/customers', {
-            query: {
-              ids: batchIds.join(','),
-              fields: 'id,name,surname' // Sadece gerekli alanları çek
-            }
-          })
-          
-          const customers = Array.isArray(customersResponse) ? customersResponse : (customersResponse.data || [])
-          customers.forEach(c => {
-            customerCache.value[c.id] = c
-          })
-        } catch (batchError) {
-          console.error('Error fetching customer batch:', batchError)
-        }
-      }
-    }
-
-    // Aktivitelere müşteri bilgisini ekle (önce kendi verisine bak, yoksa cache'e bak)
+    // Aktiviteleri ters çevir (en yeni en üstte) ve statusChange ekle
     activities = activities.map(activity => ({
       ...activity,
-      customerData: activity.customerData || customerCache.value[activity.customer] || null,
       statusChange: parseStatusChange(activity)
     }))
-
-    // Aktiviteleri ters çevir (en yeni en üstte)
-    activities = activities.reverse()
 
     if (page === 1) {
       timeline.value = activities
@@ -726,9 +698,10 @@ const fetchTimeline = async (page = 1) => {
       timeline.value = [...timeline.value, ...activities]
     }
 
-    const meta = response.meta || {}
-    hasMoreTimeline.value = (meta.page || page) < (meta.totalPages || 1)
-    timelinePage.value = page
+    // Meta bilgilerini kullan
+    const meta = result.meta || {}
+    hasMoreTimeline.value = meta.page ? meta.page < meta.totalPages : false
+    timelinePage.value = meta.page || page
   } catch (error) {
     console.error('Error fetching timeline:', error)
   } finally {
@@ -748,7 +721,6 @@ watch(() => route.params.id, async () => {
   timelinePage.value = 1
   hasMoreTimeline.value = true
   selectedFilter.value = 'all'
-  customerCache.value = {} // Cache'i temizle
   
   // Reload data
   await fetchProfileUser()
