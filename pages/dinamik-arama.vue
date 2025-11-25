@@ -357,14 +357,18 @@ const loadCustomers = async () => {
     // 🔸 Backend'e gönderilecek filtreler
     // ========================
     const baseFilters = getCustomerFilters()
+    
     const query = {
       ...baseFilters,
       search: searchTerm.value || undefined,
-      status: statusFilter.value || undefined, // Tek status veya boş
+      status: statusFilter.value || undefined,
       relevantUser: relevantUserFilter.value || undefined,
-      dateFilter: dateFilter.value,
-      startDate: customStartDate.value || undefined,
-      endDate: customEndDate.value || undefined
+      // ✅ DÜZELTME: 'all' ise dateFilter parametresini hiç gönderme
+      ...(dateFilter.value !== 'all' && {
+        dateFilter: dateFilter.value,
+        startDate: customStartDate.value || undefined,
+        endDate: customEndDate.value || undefined
+      })
     }
 
     // ========================
