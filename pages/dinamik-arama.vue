@@ -95,18 +95,18 @@
               <th class="table-header text-gray-700 dark:text-gray-300"></th>
               <th class="table-header text-gray-700 dark:text-gray-300">İsim</th>
               <th class="table-header text-gray-700 dark:text-gray-300">E-posta</th>
-              <th class="table-header text-gray-700 dark:text-gray-300"  v-if="isAdmin">Telefon</th>
+              <th class="table-header text-gray-700 dark:text-gray-300" v-if="isAdmin">Telefon</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Durum</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Hatırlatma Tarihi</th>
-              <th class="table-header text-gray-700 dark:text-gray-300"  v-if="isAdmin">Kaynak</th>
-              <th class="table-header text-gray-700 dark:text-gray-300" v-if="isAdmin">Atanan</th> 
+              <th class="table-header text-gray-700 dark:text-gray-300" v-if="isAdmin">Kaynak</th>
+              <th class="table-header text-gray-700 dark:text-gray-300" v-if="isAdmin">Atanan</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr v-for="customer in customersData" :key="customer.id">
 
-            
-                <td class="table-cell">
+
+              <td class="table-cell">
                 <div class="relative inline-block text-left">
                   <!-- Trigger Button -->
                   <button type="button"
@@ -201,7 +201,7 @@
               <td class="table-cell">
                 <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.email || '-' }}</div>
               </td>
-              <td class="table-cell"  v-if="isAdmin">
+              <td class="table-cell" v-if="isAdmin">
                 <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.phone || '-' }}</div>
               </td>
               <td class="table-cell">
@@ -217,11 +217,11 @@
               </td>
               <td class="table-cell">
                 <div class="text-sm text-gray-900 dark:text-gray-100" v-if="isAdmin">{{ customer.source || '-' }}</div>
-              </td> 
-              <td class="table-cell"  v-if="isAdmin">
+              </td>
+              <td class="table-cell" v-if="isAdmin">
                 <div class="text-sm text-gray-900 dark:text-gray-100">{{ customer.relevantUser?.name || '-' }}</div>
               </td>
-         
+
             </tr>
 
             <!-- Empty State -->
@@ -237,6 +237,95 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="pagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 gap-4">
+        <!-- Sol: Bilgi -->
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Toplam <span class="font-medium">{{ pagination.total }}</span> kayıttan
+          <span class="font-medium">{{ paginationInfo.from }}</span> -
+          <span class="font-medium">{{ paginationInfo.to }}</span> arası gösteriliyor
+        </div>
+
+        <!-- Sağ: Sayfa Kontrolleri -->
+        <div class="flex items-center gap-2">
+          <!-- İlk Sayfa -->
+          <button
+            @click="goToPage(1)"
+            :disabled="pagination.page === 1"
+            class="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            İlk
+          </button>
+
+          <!-- Önceki -->
+          <button
+            @click="goToPage(pagination.page - 1)"
+            :disabled="pagination.page === 1"
+            class="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Önceki
+          </button>
+
+          <!-- Sayfa Numaraları -->
+          <div class="hidden sm:flex items-center gap-1">
+            <template v-for="pageNum in visiblePages" :key="pageNum">
+              <span v-if="pageNum === '...'" class="px-3 py-2 text-sm text-gray-500">...</span>
+              <button
+                v-else
+                @click="goToPage(pageNum)"
+                :class="[
+                  'px-3 py-2 text-sm font-medium rounded-md border',
+                  pagination.page === pageNum
+                    ? 'bg-indigo-600 border-indigo-600 text-white'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ]"
+              >
+                {{ pageNum }}
+              </button>
+            </template>
+          </div>
+
+          <!-- Mobil: Sayfa Bilgisi -->
+          <span class="sm:hidden text-sm text-gray-700 dark:text-gray-300">
+            {{ pagination.page }} / {{ totalPages }}
+          </span>
+
+          <!-- Sonraki -->
+          <button
+            @click="goToPage(pagination.page + 1)"
+            :disabled="pagination.page >= totalPages"
+            class="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Sonraki
+          </button>
+
+          <!-- Son Sayfa -->
+          <button
+            @click="goToPage(totalPages)"
+            :disabled="pagination.page >= totalPages"
+            class="px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Son
+          </button>
+        </div>
+
+        <!-- Sayfa Başına Kayıt -->
+        <div class="flex items-center gap-2">
+          <label for="perPage" class="text-sm text-gray-700 dark:text-gray-300">Sayfa başına:</label>
+          <select
+            id="perPage"
+            v-model="pagination.limit"
+            @change="handleLimitChange"
+            class="form-input w-20 py-1"
+          >
+            <option :value="10">10</option>
+            <option :value="25">25</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <!-- Customer History Modal -->
@@ -244,7 +333,7 @@
 
     <!-- Customer Notes Modal -->
     <CustomerNotesModal :show="showNotesModal" :customer="selectedCustomer" @close="showNotesModal = false"
-      @customer-updated="() => customersStore.fetchCustomers(pagination.page)" />
+      @customer-updated="() => loadCustomers()" />
 
     <!-- Doctor Assignment Modal -->
     <DoctorAssignmentModal :show="showDoctorModal" :customer="selectedCustomer" @close="showDoctorModal = false"
@@ -275,9 +364,17 @@ import {
 definePageMeta({})
 
 const { isAdmin } = usePermissions()
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const customersData = ref([])
+
+// 🔹 Pagination
+const pagination = ref({
+  page: 1,
+  limit: 10,
+  total: 0
+})
 
 // 🔹 Filtreler
 const searchTerm = ref('')
@@ -303,12 +400,59 @@ const showFilesModal = ref(false)
 const selectedCustomer = ref(null)
 const showStates = ref({ activeId: null })
 
+// =====================================================
+// 🧮 Pagination Computed Properties
+// =====================================================
+
+const totalPages = computed(() => {
+  return Math.ceil(pagination.value.total / pagination.value.limit) || 1
+})
+
+const paginationInfo = computed(() => {
+  const from = ((pagination.value.page - 1) * pagination.value.limit) + 1
+  const to = Math.min(pagination.value.page * pagination.value.limit, pagination.value.total)
+  return { from, to }
+})
+
+const visiblePages = computed(() => {
+  const current = pagination.value.page
+  const total = totalPages.value
+  const pages = []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', total)
+    } else if (current >= total - 2) {
+      pages.push(1, '...', total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
+    }
+  }
+
+  return pages
+})
+
+// =====================================================
+// 🧮 Pagination Methods
+// =====================================================
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  pagination.value.page = page
+  loadCustomers()
+}
+
+const handleLimitChange = () => {
+  pagination.value.page = 1 // Limit değişince ilk sayfaya dön
+  loadCustomers()
+}
+
 const toggleShow = (id) => {
   if (showStates.value.activeId === id) {
-    // Aynı id'ye tıklandıysa: kapat
     showStates.value.activeId = null
   } else {
-    // Farklı id'ye tıklandıysa: mevcut açık olanı kapat, yenisini aç
     showStates.value.activeId = id
   }
 }
@@ -317,7 +461,6 @@ const toggleShow = (id) => {
 // 🧩 ANA METOD: Müşteri, kullanıcı, statü ve filtreleri yükle
 // =====================================================
 
- 
 const loadCustomers = async () => {
   loading.value = true
   try {
@@ -357,18 +500,27 @@ const loadCustomers = async () => {
     // 🔸 Backend'e gönderilecek filtreler
     // ========================
     const baseFilters = getCustomerFilters()
-    
-    // ✅ KRİTİK: Eğer status seçilmemişse (Tüm Durumlar), remindable statusları gönder
-    const statusToSend = statusFilter.value 
-      ? statusFilter.value 
+
+    const statusToSend = statusFilter.value
+      ? statusFilter.value
       : remindableStatusIds.value.join(',')
-    
+
+         // ✅ KRİTİK FIX: Admin değilse kendi user ID'sini ekle
+    let relevantUserToSend = relevantUserFilter.value || undefined
+    if (!isAdmin.value && !relevantUserToSend) {
+      relevantUserToSend = authStore.user?.id  // Kullanıcının kendi ID'si
+    }
+
+
     const query = {
       ...baseFilters,
       search: searchTerm.value || undefined,
-      status: statusToSend, // ✅ Her zaman remindable statuslar
-      relevantUser: relevantUserFilter.value || undefined,
-      // ✅ Sadece 'all' değilse tarih parametrelerini gönder
+      status: statusToSend,
+      relevantUser: relevantUserToSend, 
+      // Pagination parametreleri
+      page: pagination.value.page,
+      limit: pagination.value.limit,
+      // Tarih filtreleri
       ...(dateFilter.value !== 'all' && {
         dateFilter: dateFilter.value,
         startDate: customStartDate.value || undefined,
@@ -380,6 +532,14 @@ const loadCustomers = async () => {
     // 🧠 Müşterileri backend'den çek
     // ========================
     const response = await api('/customers', { query })
+    
+    // Meta bilgilerini al
+    if (response.meta) {
+      pagination.value.page = response.meta.page || 1
+      pagination.value.limit = response.meta.limit || 10
+      pagination.value.total = response.meta.total || 0
+    }
+
     let customers = Array.isArray(response) ? response : response.data || []
 
     // ========================
@@ -398,9 +558,6 @@ const loadCustomers = async () => {
         relevantUser: usersMap.value[relevantUserId] || customer.relevantUser
       }
     })
-
-    // ✅ Artık frontend'de filtrelemeye gerek yok!
-    // Backend zaten sadece remindable statusları döndürüyor
 
     // ========================
     // 🔹 Erişim kontrolü
@@ -423,6 +580,7 @@ const loadCustomers = async () => {
 watchDebounced(
   [searchTerm, statusFilter, relevantUserFilter, dateFilter, customStartDate, customEndDate],
   () => {
+    pagination.value.page = 1 // Filtre değişince ilk sayfaya dön
     loadCustomers()
   },
   { debounce: 600 }
@@ -445,6 +603,7 @@ const resetFilters = () => {
   dateFilter.value = 'all'
   customStartDate.value = ''
   customEndDate.value = ''
+  pagination.value.page = 1
   loadCustomers()
 }
 
@@ -453,6 +612,7 @@ const handleDateFilterChange = () => {
     customStartDate.value = ''
     customEndDate.value = ''
   }
+  pagination.value.page = 1
   loadCustomers()
 }
 
@@ -461,6 +621,14 @@ const showNotes = c => { selectedCustomer.value = c; showNotesModal.value = true
 const showDoctorAssignment = c => { selectedCustomer.value = c; showDoctorModal.value = true }
 const showServices = c => { selectedCustomer.value = c; showServicesModal.value = true }
 const showFiles = c => { selectedCustomer.value = c; showFilesModal.value = true }
+
+const handleDoctorAssigned = () => {
+  loadCustomers()
+}
+
+const handleServicesSaved = () => {
+  loadCustomers()
+}
 
 const formatDateTime = dateString => {
   if (!dateString) return '-'
