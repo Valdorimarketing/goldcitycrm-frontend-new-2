@@ -325,7 +325,7 @@ const { isAdmin, getCustomerFilters } = usePermissions()
 // =====================================================
 const STATUS_SENT_TO_PRICING = 7     // Fiyatlandırmaya gönderildi
 const STATUS_PRICE_ENTERED = 8       // Fiyat girildi
-const STATUS_PRICE_OFFERED = 9       // Fiyat teklifi iletildi
+const STATUS_PRICE_OFFERED = 14       // Fiyat teklifi iletildi
 
 // State
 const loading = ref(true)

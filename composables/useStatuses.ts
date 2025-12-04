@@ -11,6 +11,7 @@ export interface Status {
   isFirst: boolean
   isClosed: boolean
   isSale: boolean
+  isActive: boolean
   remindingDay?: number | null
   isDoctor?: boolean
   isPricing?: boolean

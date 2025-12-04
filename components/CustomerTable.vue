@@ -1,23 +1,20 @@
 <template>
   <div class="overflow-x-auto">
-
-
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-      <thead class="bg-gray-50 dark:bg-gray-800">
-        <tr>
-          <th class="table-header text-gray-700 dark:text-gray-300"></th>
+    <table class="min-w-full">
+      <thead>
+        <tr class="bg-gray-50 dark:bg-gray-900/50">
+          <th class="w-12 px-4 py-3"></th>
           <template v-for="col in columns" :key="col.key">
-            <th v-if="col.isVisible" @click="sortBy(col.key)"
-              class="table-header cursor-pointer text-gray-700 dark:text-gray-300">
-              <div class="flex items-center gap-1">
+            <th 
+              v-if="col.isVisible" 
+              @click="sortBy(col.key)"
+              class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              <div class="flex items-center gap-1.5">
                 {{ col.label }}
-                <span v-if="sortColumn === col.key">
-                  <svg v-if="sortDirection === 'asc'" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M5 12l5-5 5 5H5z" />
-                  </svg>
-                  <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M5 8l5 5 5-5H5z" />
-                  </svg>
+                <span v-if="sortColumn === col.key" class="text-indigo-600 dark:text-indigo-400">
+                  <ChevronUpIcon v-if="sortDirection === 'asc'" class="w-4 h-4" />
+                  <ChevronDownIcon v-else class="w-4 h-4" />
                 </span>
               </div>
             </th>
@@ -25,172 +22,275 @@
         </tr>
       </thead>
 
-      <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700 text-sm font-light">
-        <tr v-for="customer in filteredAndSorted" :key="customer.id">
-
-
-          <td class="table-cell">
-            <div class="relative inline-block text-left">
-              <!-- Trigger Button -->
-              <button type="button"
-                class="inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                @click="toggleShow(customer.id)">
-                <EllipsisHorizontalIcon class="h-5 w-5 text-gray-700 dark:text-gray-300" />
-              </button>
-
-              <!-- Dropdown -->
-              <div v-show="showStates.activeId === customer.id"
-                class="fixed left-0 top-0 bottom-0 m-auto z-20 bg-white/50 dark:bg-black/50 w-full h-full flex justify-center items-center">
-                <div
-                  class="flex flex-col h-96 max-w-lg rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition">
-                  <div
-                    class="flex flex-wrap gap-2 justify-between items-center px-4 py-1 border-b border-gray-200 dark:border-gray-700">
-                    <div class="text-lg font-semibold">İşlemler</div>
-                    <button @click="toggleShow(customer.id)" class="p-2 rounded-md">
-                      <XCircleIcon class="h-6 w-6 text-gray-400 dark:text-white" />
-                    </button>
-                  </div>
-                  <div class="p-3 grid grid-cols-3 gap-2">
-                    <NuxtLink :to="`/customers/show/${customer.id}`"
-                      class="flex flex-col items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                      <EyeIcon class="h-8 w-8 text-indigo-500" />
-                      Görüntüle
-                    </NuxtLink>
-
-                    <button @click="emit('show-history', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <ClockIcon class="h-8 w-8 text-blue-500" />
-                      Geçmiş
-                    </button>
-
-                    <button @click="emit('show-notes', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <DocumentTextIcon class="h-8 w-8 text-amber-500" />
-                      Notlar
-                    </button>
-
-                    <button @click="emit('show-doctor', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <UsersIcon class="h-8 w-8 text-purple-500" />
-                      Doktor Görüşü
-                    </button>
-
-                    <button @click="emit('show-services', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <ShoppingBagIcon class="h-8 w-8 text-green-500" />
-                      Hizmetler
-                    </button>
-
-                    <button @click="emit('show-files', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <FolderIcon class="h-8 w-8 text-cyan-500" />
-                      Müşteri Dosyaları
-                    </button>
-
-                    <NuxtLink v-if="isEditable" :to="`/customers/edit/${customer.id}`"
-                      class="flex flex-col items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <PencilIcon class="h-8 w-8 text-yellow-500" />
-                      Düzenle
-                    </NuxtLink>
-
-                    <button v-if="isDeleteable" @click="emit('confirm-delete', customer)"
-                      class="flex flex-col items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
-                      <TrashIcon class="h-8 w-8 text-red-500" />
-                      Sil
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <tr 
+          v-for="customer in filteredAndSorted" 
+          :key="customer.id"
+          class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
+        >
+          <!-- Actions -->
+          <td class="px-4 py-4">
+            <button 
+              @click="toggleShow(customer.id)"
+              class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            >
+              <EllipsisHorizontalIcon class="h-5 w-5" />
+            </button>
           </td>
 
-
-          <td class="table-cell">
-            <div class="flex items-center">
-              <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                <span class="text-sm font-medium text-indigo-600 dark:text-indigo-300">
-                  {{ customer.name.charAt(0).toUpperCase() }}
-                </span>
+          <!-- Customer Info -->
+          <td class="px-4 py-4">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                {{ customer.name.charAt(0).toUpperCase() }}
               </div>
-              <div class="ml-4">
-                <NuxtLink :to="`/customers/show/${customer.id}`"
-                  class="text-sm flex flex-col gap-1 font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">
-                  <span>{{ customer.name }}</span>
-                  <span class="text-xs dark:text-gray-400">ID: {{ customer.id }}</span>
+              <div>
+                <NuxtLink 
+                  :to="`/customers/show/${customer.id}`"
+                  class="font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  {{ customer.name }}
                 </NuxtLink>
+                <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ customer.id }}</p>
               </div>
             </div>
           </td>
 
-
-          <td class="table-cell">
+          <!-- Status -->
+          <td class="px-4 py-4">
             <StatusBadge :name="customer.statusData?.name" :color="customer.statusData?.color" />
           </td>
 
+          <!-- Source (Admin) -->
+          <td v-if="isAdmin" class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ customer.source || '-' }}</span>
+          </td>
 
-          <td class="table-cell" v-if="isAdmin">{{ customer.source || '-' }}</td>
-          <td class="table-cell">
-            <template v-if="!customer.phone">-</template>
-            <template v-else-if="isAdmin">{{ customer.phone }}</template>
+          <!-- Phone -->
+          <td class="px-4 py-4">
+            <template v-if="!customer.phone">
+              <span class="text-sm text-gray-400">-</span>
+            </template>
+            <template v-else-if="isAdmin">
+              <span class="text-sm text-gray-600 dark:text-gray-300">{{ customer.phone }}</span>
+            </template>
             <template v-else>
-              <span class="inline-flex items-center">
-                <span>{{ customer.phone.substring(0, 5) }}</span>
-                <span class="blur-[3px] select-none pointer-events-none" aria-hidden="true">{{
-                  maskPhone(customer.phone.substring(5)) }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-300">
+                {{ customer.phone.substring(0, 5) }}<span class="blur-[3px] select-none">{{ maskPhone(customer.phone.substring(5)) }}</span>
               </span>
             </template>
           </td>
-          <td class="table-cell">{{ customer.relatedTransaction || '-' }}</td>
-          <td class="table-cell">{{ customer.patient || '-' }}</td>
-          <td class="table-cell">{{ customer.checkup_package || '-' }}</td>
-          <td class="table-cell" v-if="isAdmin">
-            <NuxtLink :to="`/profile/${customer.relevantUserData?.id}`" class="inline-block">
-              <div class="flex items-center gap-2">
-                <div v-if="customer.relevantUserData && customer.relevantUserData.avatar"
-                  class="h-10 w-10 rounded-full overflow-hidden">
-                  <img :src="path + customer.relevantUserData.avatar" alt="Avatar" class="h-full w-full object-cover" />
-                </div>
-                <div v-else
-                  class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                  <span class="text-sm font-medium text-indigo-600 dark:text-indigo-300">
-                    {{ customer.relevantUserData?.name ? customer.relevantUserData?.name.charAt(0).toUpperCase() : 'A'
-                    }}
-                  </span>
-                </div>
-                <div class="relative flex flex-col">
-                  <span class="text-sm text-gray-900 dark:text-gray-100">
-                    {{ customer.relevantUserData ? customer.relevantUserData?.name : 'Atanmamış' }}
-                  </span>
-                  <span v-if="customer.relevantUserData?.lastActiveTime"
-                    class="bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
-                    son görülme: {{ getLastSeen(customer.relevantUserData?.lastActiveTime) }}
-                  </span>
-                </div>
-              </div>
-            </NuxtLink>
+
+          <!-- Related Transaction -->
+          <td class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ customer.relatedTransaction || '-' }}</span>
           </td>
 
-          <td class="table-cell">{{ formatDate(customer.createdAt) }}</td>
-          <td class="table-cell">{{ formatDate(customer.updatesAt) }}</td>
+          <!-- Patient -->
+          <td class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ customer.patient || '-' }}</span>
+          </td>
 
+          <!-- Checkup Package -->
+          <td class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ customer.checkup_package || '-' }}</span>
+          </td>
 
+          <!-- Assigned User (Admin) -->
+          <td v-if="isAdmin" class="px-4 py-4">
+            <NuxtLink 
+              v-if="customer.relevantUserData"
+              :to="`/profile/${customer.relevantUserData?.id}`" 
+              class="flex items-center gap-2 group/user"
+            >
+              <div v-if="customer.relevantUserData.avatar" class="h-8 w-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-gray-800 shadow">
+                <img :src="path + customer.relevantUserData.avatar" alt="Avatar" class="h-full w-full object-cover" />
+              </div>
+              <div v-else class="h-8 w-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-medium shadow">
+                {{ customer.relevantUserData?.name?.charAt(0) || 'A' }}
+              </div>
+              <div>
+                <p class="text-sm text-gray-700 dark:text-gray-300 group-hover/user:text-indigo-600 dark:group-hover/user:text-indigo-400 transition-colors">
+                  {{ customer.relevantUserData?.name }}
+                </p>
+                <p v-if="customer.relevantUserData?.lastActiveTime" class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="isOnline(customer.relevantUserData?.lastActiveTime) ? 'bg-emerald-500' : 'bg-gray-400'"></span>
+                  {{ getLastSeen(customer.relevantUserData?.lastActiveTime) }}
+                </p>
+              </div>
+            </NuxtLink>
+            <span v-else class="text-sm text-gray-400">Atanmamış</span>
+          </td>
+
+          <!-- Created Date -->
+          <td class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ formatDate(customer.createdAt) }}</span>
+          </td>
+
+          <!-- Updated Date -->
+          <td class="px-4 py-4">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ formatDate(customer.updatesAt) }}</span>
+          </td>
         </tr>
 
+        <!-- Empty State -->
         <tr v-if="filteredAndSorted.length === 0">
-          <td colspan="13" class="text-center py-12">
-            <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
-            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Müşteri bulunamadı</h3>
+          <td :colspan="columns.filter(c => c.isVisible).length + 1" class="px-4 py-16 text-center">
+            <div class="flex flex-col items-center">
+              <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+                <UsersIcon class="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-1">Müşteri bulunamadı</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Arama kriterlerinizi değiştirmeyi deneyin.</p>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Action Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-all duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-all duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div 
+          v-if="showStates.activeId"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          @click.self="showStates.activeId = null"
+        >
+          <Transition
+            enter-active-class="transition-all duration-300"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition-all duration-200"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+          >
+            <div 
+              v-if="showStates.activeId"
+              class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+            >
+              <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+                <h3 class="font-semibold text-gray-900 dark:text-white">İşlemler</h3>
+                <button 
+                  @click="showStates.activeId = null"
+                  class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                >
+                  <XMarkIcon class="h-5 w-5" />
+                </button>
+              </div>
+
+              <div class="p-4 grid grid-cols-3 gap-2">
+                <NuxtLink 
+                  :to="`/customers/show/${showStates.activeId}`"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    <EyeIcon class="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Görüntüle</span>
+                </NuxtLink>
+
+                <button 
+                  @click="emitAction('show-history')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <ClockIcon class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Geçmiş</span>
+                </button>
+
+                <button 
+                  @click="emitAction('show-notes')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                    <DocumentTextIcon class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Notlar</span>
+                </button>
+
+                <button 
+                  @click="emitAction('show-doctor')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <UsersIcon class="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Doktor</span>
+                </button>
+
+                <button 
+                  @click="emitAction('show-services')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                    <ShoppingBagIcon class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Hizmetler</span>
+                </button>
+
+                <button 
+                  @click="emitAction('show-files')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                    <FolderIcon class="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Dosyalar</span>
+                </button>
+
+                <NuxtLink 
+                  v-if="isEditable"
+                  :to="`/customers/edit/${showStates.activeId}`"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                >
+                  <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <PencilIcon class="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">Düzenle</span>
+                </NuxtLink>
+
+                <button 
+                  v-if="isDeleteable"
+                  @click="emitAction('confirm-delete')"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                >
+                  <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <TrashIcon class="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <span class="text-xs text-red-600 dark:text-red-400">Sil</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ClockIcon, DocumentTextIcon, EllipsisHorizontalIcon, EyeIcon, FolderIcon, PencilIcon, ShoppingBagIcon, TrashIcon, UsersIcon, XCircleIcon } from '@heroicons/vue/24/outline'
-import { ref, computed } from 'vue'
+import { 
+  ClockIcon, 
+  DocumentTextIcon, 
+  EllipsisHorizontalIcon, 
+  EyeIcon, 
+  FolderIcon, 
+  PencilIcon, 
+  ShoppingBagIcon, 
+  TrashIcon, 
+  UsersIcon, 
+  XMarkIcon,
+  ChevronUpIcon,
+  ChevronDownIcon
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   isAdmin: { type: Boolean, default: false },
@@ -199,43 +299,24 @@ const props = defineProps({
   isEditable: { type: Boolean, default: false },
   isDeleteable: { type: Boolean, default: false }
 })
+
 const { $dayjs } = useNuxtApp()
 const config = useRuntimeConfig()
 const path = config.public.apiBase
 
 const showStates = ref({ activeId: null })
-
-const toggleShow = (id) => {
-  if (showStates.value.activeId === id) {
-    // Aynı id'ye tıklandıysa: kapat
-    showStates.value.activeId = null
-  } else {
-    // Farklı id'ye tıklandıysa: mevcut açık olanı kapat, yenisini aç
-    showStates.value.activeId = id
-  }
-}
-const getLastSeen = (lastActiveTime) => {
-  return $dayjs(lastActiveTime).fromNow()
-}
+const sortColumn = ref('')
+const sortDirection = ref('asc')
 
 const emit = defineEmits([
   'confirm-delete',
   'show-history',
   'show-notes',
-  'show-doctor-assignment',
+  'show-doctor',
   'show-services',
   'show-files'
 ])
 
-const maskPhone = (str) => {
-  if (!str) return ''
-  // Gerçek rakamlar yerine aynı uzunlukta rastgele rakamlar döndür
-  return str.replace(/[0-9]/g, () => Math.floor(Math.random() * 10).toString())
-            .replace(/[^0-9\s\-\+\(\)]/g, '•')
-}
-// Sıralama
-const sortColumn = ref('')
-const sortDirection = ref('asc')
 const columns = computed(() => [
   { label: 'İsim', key: 'name', isVisible: props.isAdmin || props.isUser },
   { label: 'Durum', key: 'statusData', isVisible: props.isAdmin || props.isUser },
@@ -245,9 +326,35 @@ const columns = computed(() => [
   { label: 'Hastalık', key: 'patient', isVisible: props.isAdmin || props.isUser },
   { label: 'Checkup Paketi', key: 'checkup_package', isVisible: props.isAdmin || props.isUser },
   { label: 'Atanan', key: 'relevantUserData', isVisible: props.isAdmin },
-  { label: 'Eklenme Tarihi', key: 'createdAt', isVisible: props.isAdmin || props.isUser },
-  { label: 'Güncellenme Tarihi', key: 'updatesAt', isVisible: props.isAdmin || props.isUser }
+  { label: 'Eklenme', key: 'createdAt', isVisible: props.isAdmin || props.isUser },
+  { label: 'Güncelleme', key: 'updatesAt', isVisible: props.isAdmin || props.isUser }
 ])
+
+const toggleShow = (id) => {
+  showStates.value.activeId = showStates.value.activeId === id ? null : id
+}
+
+const emitAction = (action) => {
+  const customer = props.data.find(c => c.id === showStates.value.activeId)
+  if (customer) {
+    emit(action, customer)
+    showStates.value.activeId = null
+  }
+}
+
+const getLastSeen = (lastActiveTime) => $dayjs(lastActiveTime).fromNow()
+
+const isOnline = (lastActiveTime) => {
+  if (!lastActiveTime) return false
+  const diff = Date.now() - new Date(lastActiveTime).getTime()
+  return diff < 5 * 60 * 1000
+}
+
+const maskPhone = (str) => {
+  if (!str) return ''
+  return str.replace(/[0-9]/g, () => Math.floor(Math.random() * 10).toString())
+            .replace(/[^0-9\s\-\+\(\)]/g, '•')
+}
 
 const sortBy = (key) => {
   if (sortColumn.value === key) {
@@ -259,7 +366,6 @@ const sortBy = (key) => {
 }
 
 const customers = computed(() => props.data)
-
 
 const filteredAndSorted = computed(() => {
   let result = customers.value
@@ -287,12 +393,4 @@ function getValueByPath(obj, path) {
 function formatDate(date) {
   return new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
-
-
 </script>
-
-<style scoped>
-.tooltip {
-  @apply absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none;
-}
-</style>
