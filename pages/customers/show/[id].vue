@@ -1,247 +1,331 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      
       <!-- Breadcrumb -->
-      <nav class="flex mb-6" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-          <li class="inline-flex items-center">
-            <NuxtLink to="/customers"
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-              Müşteriler
-            </NuxtLink>
-          </li>
-          <li>
-            <div class="flex items-center">
-              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"></path>
-              </svg>
-              <span class="text-gray-500 dark:text-gray-400 ml-1 md:ml-2">{{ customer?.name || 'Müşteri' }}</span>
-            </div>
-          </li>
-        </ol>
+      <nav class="flex items-center gap-2 mb-6 text-sm">
+        <NuxtLink 
+          to="/customers"
+          class="flex items-center gap-1.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors"
+        >
+          <UsersIcon class="h-4 w-4" />
+          Müşteriler
+        </NuxtLink>
+        <ChevronRightIcon class="h-4 w-4 text-gray-400" />
+        <span class="text-gray-900 dark:text-white font-medium">{{ customer?.name || 'Müşteri' }}</span>
       </nav>
 
       <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div v-if="loading" class="flex flex-col items-center justify-center py-24">
+        <div class="relative">
+          <div class="w-16 h-16 rounded-full border-4 border-indigo-100 dark:border-indigo-900/50"></div>
+          <div class="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-t-indigo-600 animate-spin"></div>
+        </div>
+        <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Müşteri bilgileri yükleniyor...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-        <div class="text-sm text-red-700 dark:text-red-300">{{ error }}</div>
+      <div v-else-if="error" class="max-w-md mx-auto">
+        <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 text-center">
+          <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ExclamationTriangleIcon class="h-6 w-6 text-red-600 dark:text-red-400" />
+          </div>
+          <p class="text-red-700 dark:text-red-300">{{ error }}</p>
+          <button @click="refreshData" class="mt-4 text-sm text-red-600 dark:text-red-400 hover:underline">
+            Tekrar Dene
+          </button>
+        </div>
       </div>
 
       <!-- Customer Profile -->
-      <div v-else-if="customer" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div v-else-if="customer" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
         <!-- Left Sidebar - Profile Card -->
-        <div class="lg:col-span-1">
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <!-- Profile Photo -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 h-32"></div>
-            <div class="px-6 pb-6">
-              <div class="relative -mt-16 mb-4">
-                <div class="inline-block rounded-full ring-4 ring-white dark:ring-gray-800">
-                  <img v-if="customer.image" :src="getImageUrl(customer.image)"
-                    :alt="`${customer.name} ${customer.surname}`"
-                    class="h-32 w-32 rounded-full object-cover bg-gray-200 dark:bg-gray-700" />
-                  <div v-else
-                    class="h-32 w-32 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                    <span class="text-4xl font-bold text-indigo-600 dark:text-indigo-300">
-                      {{ customer.name?.charAt(0)?.toUpperCase() }}{{ customer.surname?.charAt(0)?.toUpperCase() }}
-                    </span>
+        <div class="lg:col-span-4 xl:col-span-3">
+          <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-700">
+            
+            <!-- Cover & Avatar -->
+            <div class="relative">
+              <div class="h-28 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"></div>
+              <div class="absolute -bottom-12 left-1/2 -translate-x-1/2">
+                <div class="relative">
+                  <div class="h-24 w-24 rounded-2xl ring-4 ring-white dark:ring-gray-800 shadow-xl overflow-hidden bg-white dark:bg-gray-700">
+                    <img 
+                      v-if="customer.image" 
+                      :src="getImageUrl(customer.image)"
+                      :alt="customer.name"
+                      class="h-full w-full object-cover"
+                    />
+                    <div v-else class="h-full w-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                      <span class="text-2xl font-bold text-white">
+                        {{ customer.name?.charAt(0)?.toUpperCase() }}{{ customer.surname?.charAt(0)?.toUpperCase() }}
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Online indicator -->
+                  <div class="absolute -bottom-1 -right-1 h-6 w-6 bg-emerald-500 rounded-lg ring-2 ring-white dark:ring-gray-800 flex items-center justify-center">
+                    <CheckIcon class="h-3.5 w-3.5 text-white" />
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Name and Title -->
-              <div class="text-center mb-6">
-                <h2 class="text-xl xxl:text-2xl font-bold text-gray-900 dark:text-white">
+            <!-- Profile Info -->
+            <div class="pt-14 pb-6 px-6">
+              <!-- Name -->
+              <div class="text-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                   {{ customer.name }} {{ customer.surname }}
                 </h2>
-                <p v-if="customer.title" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {{ customer.title }}
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-center gap-1">
+                  <HashtagIcon class="h-3.5 w-3.5" />
+                  ID: {{ customer.id }}
                 </p>
-                <!-- Status Badges -->
-                <div class="flex items-center justify-center gap-2 mt-3">
-                  <span :class="[
-                    customer.isActive
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-                    'inline-flex px-2 py-1 text-xs font-semibold rounded-full'
-                  ]">
-                    {{ customer.isActive ? 'Aktif' : 'Pasif' }}
-                  </span>
-                  <span v-if="customerStatus" :class="[
-                    'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                    'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                  ]">
-                    {{ customerStatus.name }}
-                  </span>
-                </div>
-                <div v-if="customer.remindingDate" class="flex flex-col items-center justify-center"
-                  title="Hatırlatma Tarihi">
-                  <span class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                    <PhoneIcon class="h-4 w-4 text-gray-400" />
+              </div>
+
+              <!-- Status Badges -->
+              <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
+                <span :class="[
+                  'inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full',
+                  customer.isActive 
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                ]">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="customer.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                  {{ customer.isActive ? 'Aktif' : 'Pasif' }}
+                </span>
+                <span 
+                  v-if="customerStatus" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
+                >
+                  {{ customerStatus.name }}
+                </span>
+              </div>
+
+              <!-- Reminder Badge -->
+              <div v-if="customer.remindingDate" class="mb-6">
+                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 text-center">
+                  <div class="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-2">
+                    <BellAlertIcon class="h-4 w-4" />
+                    <span>Hatırlatma</span>
+                  </div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ formatDate(customer.remindingDate) }}
-                  </span>
-                  <span class="text-xs mt-1 px-2 py-0.5 rounded-full"
-                    :class="getRemainingTimeClass(customer.remindingDate)">
+                  </p>
+                  <span 
+                    class="inline-block mt-2 text-xs font-medium px-3 py-1 rounded-full"
+                    :class="getRemainingTimeClass(customer.remindingDate)"
+                  >
                     {{ getRemainingTime(customer.remindingDate) }}
                   </span>
                 </div>
               </div>
 
+              <!-- Quick Stats -->
+              <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-3 text-center">
+                  <ClockIcon class="h-5 w-5 text-indigo-600 dark:text-indigo-400 mx-auto mb-1" />
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Kayıt</p>
+                  <p class="text-xs font-medium text-gray-900 dark:text-white">{{ formatShortDate(customer.createdAt) }}</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-3 text-center">
+                  <ArrowPathIcon class="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Güncelleme</p>
+                  <p class="text-xs font-medium text-gray-900 dark:text-white">{{ formatShortDate(customer.updatesAt) }}</p>
+                </div>
+              </div>
+
               <!-- Contact Info -->
-              <div class="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-                <div title="Müşteri ID" class="flex items-center text-sm">
-                  <FingerPrintIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  {{ customer?.id }}
-                </div>
-
-                <div title="Atanan Sağlık Danışmanı" v-if="customer?.relevantUserData"
-                  class="flex items-center text-sm">
-                  <UserIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  {{ customer?.relevantUserData.name }}
-                </div>
-
-                <!-- Phone Number - Click to reveal -->
-                <div v-if="customer.phone" class="flex items-center text-sm">
-                  <PhoneIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <button v-if="!phoneRevealed && isUser" @click="revealPhone"
-                    class="text-indigo-600 dark:text-indigo-400 hover:underline">
-                    Telefonu Göster
-                  </button>
-                  <span v-else class="text-gray-700 dark:text-gray-300">
-                    <a :href="`tel:${customer.phone}`">{{ customer.phone }}</a>
-                  </span>
-                </div>
-
-                <!-- Timer Display - Sadece engagement sahibi görür -->
-                <div v-if="customer.phone && activeEngagement && isEngagementOwner" class="flex items-center text-sm">
-                  <ClockIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <div class="flex justify-between items-center flex-1">
-                    <span class="text-indigo-600 dark:text-indigo-400 font-medium">
-                      {{ formattedEngagementTime }}
-                    </span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                      ({{ activeEngagement.role === 'SALES' ? 'Satış' : 'Doktor' }})
-                    </span>
+              <div class="space-y-3">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">İletişim</h3>
+                
+                <!-- Assigned User -->
+                <div v-if="customer.relevantUserData" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium shadow">
+                    {{ customer.relevantUserData.name?.charAt(0) }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {{ customer.relevantUserData.name }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Sağlık Danışmanı</p>
                   </div>
                 </div>
 
-                <div v-if="customer.email" class="flex items-center text-sm">
-                  <EnvelopeIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <a :href="`mailto:${customer.email}`"
-                    class="text-indigo-600 dark:text-indigo-400 hover:underline truncate">
+                <!-- Phone -->
+                <div v-if="customer.phone" class="group">
+                  <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <PhoneIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div class="flex-1">
+                      <template v-if="!phoneRevealed && isUser">
+                        <button 
+                          @click="revealPhone"
+                          class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                        >
+                          Telefonu Göster
+                        </button>
+                      </template>
+                      <template v-else>
+                        <a :href="`tel:${customer.phone}`" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                          {{ customer.phone }}
+                        </a>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Engagement Timer -->
+                <div v-if="customer.phone && activeEngagement && isEngagementOwner" class="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                  <div class="h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                    <ClockIcon class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                      {{ formattedEngagementTime }}
+                    </p>
+                    <p class="text-xs text-indigo-500 dark:text-indigo-300">
+                      {{ activeEngagement.role === 'SALES' ? 'Satış Görüşmesi' : 'Doktor Görüşmesi' }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div v-if="customer.email" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <div class="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <EnvelopeIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <a :href="`mailto:${customer.email}`" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate">
                     {{ customer.email }}
                   </a>
                 </div>
 
+                <!-- Gender -->
+                <div v-if="customer.gender" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                    <UserIcon class="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ getGenderText(customer.gender) }}</span>
+                </div>
 
+                <!-- Birth Date -->
+                <div v-if="customer.birth_date" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <CalendarIcon class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ formatBirthDate(customer.birth_date) }}</span>
+                </div>
 
-                <div v-if="customer.gender" class="flex items-center text-sm">
-                  <UserIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ getGenderText(customer.gender) }}</span>
+                <!-- Location -->
+                <div v-if="locationText" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                    <MapPinIcon class="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ locationText }}</span>
                 </div>
-                <div v-if="customer.url" class="flex items-start text-sm" title="Hangi Linkten Geldi">
-                  <GlobeAltIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ customer.url }}</span>
+
+                <!-- URL -->
+                <div v-if="customer.url" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+                    <GlobeAltIcon class="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ customer.url }}</span>
                 </div>
-                <div v-if="customer.checkup_package" class="flex items-start text-sm" title="Hangi Checkup Paketi">
-                  <CursorArrowRippleIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ customer.checkup_package }}</span>
+
+                <!-- Checkup Package -->
+                <div v-if="customer.checkup_package" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="h-9 w-9 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                    <CursorArrowRippleIcon class="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ customer.checkup_package }}</span>
                 </div>
-                <div v-if="customer.birth_date" class="flex items-center text-sm">
-                  <CalendarIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ formatBirthDate(customer.birth_date) }}</span>
-                </div>
-                <div v-if="customer.job" class="flex items-center text-sm">
-                  <BriefcaseIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ customer.job }}</span>
-                </div>
-                <div v-if="customer.address" class="flex items-start text-sm">
-                  <MapPinIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ customer.address }}</span>
-                </div>
-                <div v-if="locationText" class="flex items-start text-sm">
-                  <GlobeAltIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ locationText }}</span>
-                </div>
-                <div v-if="customer.message" class="flex items-start text-sm">
-                  <CursorArrowRaysIcon class="h-5 w-5 text-gray-400 mr-3 flex-shrink-0 mt-0.5" />
-                  <span class="text-gray-700 dark:text-gray-300">{{ customer.message }}</span>
+
+                <!-- Message -->
+                <div v-if="customer.message" class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <ChatBubbleLeftIcon class="h-4 w-4 text-gray-400" />
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Mesaj</span>
+                  </div>
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ customer.message }}</p>
                 </div>
               </div>
 
               <!-- Action Buttons -->
-              <div class="mt-6 space-y-2 border-t border-gray-200 dark:border-gray-700 pt-4">
-                <button @click="showNotes"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500">
-                  <DocumentTextIcon class="h-5 w-5 mr-2" />
-                  Notlar
+              <div class="mt-6 space-y-2">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Hızlı İşlemler</h3>
+                
+                <div class="grid grid-cols-2 gap-2">
+                  <button 
+                    @click="showNotes"
+                    class="flex items-center justify-center gap-2 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all text-sm font-medium"
+                  >
+                    <DocumentTextIcon class="h-4 w-4" />
+                    Notlar
+                  </button>
+                  <button 
+                    @click="showDoctorAssignment"
+                    class="flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all text-sm font-medium"
+                  >
+                    <UserIcon class="h-4 w-4" />
+                    Doktor
+                  </button>
+                  <button 
+                    @click="showServices"
+                    class="flex items-center justify-center gap-2 px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all text-sm font-medium"
+                  >
+                    <ShoppingBagIcon class="h-4 w-4" />
+                    Hizmetler
+                  </button>
+                  <button 
+                    @click="showFiles"
+                    class="flex items-center justify-center gap-2 px-3 py-2.5 bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 rounded-xl hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-all text-sm font-medium"
+                  >
+                    <FolderIcon class="h-4 w-4" />
+                    Dosyalar
+                  </button>
+                </div>
+
+                <button 
+                  @click="showOperationFollowUpModal"
+                  class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all text-sm font-medium"
+                >
+                  <ViewfinderCircleIcon class="h-4 w-4" />
+                  Operasyon Takip
                 </button>
-                <button @click="showDoctorAssignment"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500">
-                  <UserIcon class="h-5 w-5 mr-2" />
-                  Doktor Görüşü
-                </button>
-                <button @click="showServices"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
-                  <ShoppingBagIcon class="h-5 w-5 mr-2" />
-                  Hizmetler
-                </button>
-                <button @click="showFiles"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500">
-                  <FolderIcon class="h-5 w-5 mr-2" />
-                  Dosyalar
-                </button>
-                <button @click="showOperationFollowUpModal"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-500">
-                  <ViewfinderCircleIcon class="h-5 w-5 mr-2" />
-                  Operasyon Sonrası Takip
-                </button>
-                <NuxtLink v-if="!isDoctor" :to="`/customers/edit/${$route.params.id}`"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-                  <PencilIcon class="h-5 w-5 mr-2" />
+
+                <NuxtLink 
+                  v-if="!isDoctor" 
+                  :to="`/customers/edit/${$route.params.id}`"
+                  class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all text-sm font-medium shadow-lg shadow-indigo-500/25"
+                >
+                  <PencilIcon class="h-4 w-4" />
                   Düzenle
                 </NuxtLink>
-                <button @click="goBack"
-                  class="w-full inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  <ArrowLeftIcon class="h-5 w-5 mr-2" />
-                  Geri
+
+                <button 
+                  @click="goBack"
+                  class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all text-sm font-medium"
+                >
+                  <ArrowLeftIcon class="h-4 w-4" />
+                  Geri Dön
                 </button>
               </div>
 
-              <!-- Additional Info -->
-              <div v-if="customer.description || customer.source || customer.user || customer.createdAt"
-                class="mt-6 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Ek Bilgiler</h3>
-
-                <div v-if="customer.source?.name" class="text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">Kaynak:</span>
-                  <span class="ml-2 text-gray-900 dark:text-white">{{ customer.source.name }}</span>
+              <!-- Source & Additional Info -->
+              <div v-if="customer.source?.name || customer.description" class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Ek Bilgiler</h3>
+                
+                <div v-if="customer.source?.name" class="flex items-center justify-between text-sm mb-2">
+                  <span class="text-gray-500 dark:text-gray-400">Kaynak</span>
+                  <span class="font-medium text-gray-900 dark:text-white">{{ customer.source.name }}</span>
                 </div>
 
-                <div v-if="customer.user?.name" class="text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">Sorumlu:</span>
-                  <span class="ml-2 text-gray-900 dark:text-white">{{ customer.user.name }}</span>
-                </div>
-
-                <div v-if="customer.createdAt" class="text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">Kayıt:</span>
-                  <span class="ml-2 text-gray-900 dark:text-white">{{ formatDate(customer.createdAt) }}</span>
-                </div>
-
-                <div v-if="customer.updatesAt" class="text-sm">
-                  <span class="text-gray-500 dark:text-gray-400">Güncelleme:</span>
-                  <span class="ml-2 text-gray-900 dark:text-white">{{ formatDate(customer.updatesAt) }}</span>
-                </div>
-
-                <div v-if="customer.description" class="text-sm">
-                  <p class="text-gray-500 dark:text-gray-400 mb-1">Açıklama:</p>
-                  <p class="text-gray-900 dark:text-white">{{ customer.description }}</p>
+                <div v-if="customer.description" class="mt-3">
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Açıklama</p>
+                  <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                    {{ customer.description }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -249,24 +333,30 @@
         </div>
 
         <!-- Right Content - History Timeline -->
-        <div class="lg:col-span-2">
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="lg:col-span-8 xl:col-span-9">
+          <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-700">
+            
             <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-4 rounded-t-lg">
-              <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur">
-                    <ClockIcon class="h-6 w-6 text-white" />
+            <div class="relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"></div>
+              <div class="absolute inset-0 bg-white/5 bg-[length:20px_20px] bg-[radial-gradient(circle,_rgba(255,255,255,0.1)_1px,_transparent_1px)]"></div>
+
+              <div class="relative px-6 py-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+                      <ClockIcon class="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-bold text-white">Müşteri Geçmişi</h3>
+                      <p class="text-sm text-blue-100">Tüm aktiviteler ve değişiklikler</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-white">Müşteri Geçmişi</h3>
-                    <p class="text-sm text-blue-100">Tüm aktiviteler ve değişiklikler</p>
-                  </div>
-                </div>
-                <div class="relative">
-                  <button @click="refreshData"
-                    class="inline-flex items-center px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition">
-                    <ArrowPathIcon class="h-5 w-5 mr-2" />
+                  <button 
+                    @click="refreshData"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl backdrop-blur transition-all text-sm font-medium"
+                  >
+                    <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': loadingHistory }" />
                     Yenile
                   </button>
                 </div>
@@ -274,130 +364,176 @@
             </div>
 
             <!-- Content -->
-            <div class="max-h-[calc(100vh-200px)] overflow-y-auto p-6">
-              <!-- Loading State -->
-              <div v-if="loadingHistory" class="flex justify-center py-8">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div class="max-h-[calc(100vh-280px)] overflow-y-auto">
+              
+              <!-- Loading -->
+              <div v-if="loadingHistory" class="flex flex-col items-center justify-center py-16">
+                <div class="relative">
+                  <div class="w-12 h-12 rounded-full border-4 border-indigo-100 dark:border-indigo-900/50"></div>
+                  <div class="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-transparent border-t-indigo-600 animate-spin"></div>
+                </div>
+                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Geçmiş yükleniyor...</p>
               </div>
 
-              <!-- History Timeline -->
-              <div v-else-if="history.length > 0" class="space-y-4">
+              <!-- Timeline -->
+              <div v-else-if="history.length > 0" class="p-6">
+                
                 <!-- Add Action Button -->
-                <div class="relative pb-4">
-                  <div class="absolute left-4 top-10 h-full w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-
-                  <div class="flex items-start space-x-4">
-                    <!-- Actions Dropdown Button -->
+                <div class="relative mb-6">
+                  <div class="flex items-center gap-4">
                     <div class="relative">
-                      <button @click="toggleActionsDropdown"
-                        class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 ring-4 ring-white dark:ring-gray-800 transition-colors shadow-lg"
-                        title="Hızlı İşlemler">
-                        <PlusIcon class="h-4 w-4 text-white" />
+                      <button 
+                        @click="toggleActionsDropdown"
+                        class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
+                      >
+                        <PlusIcon class="h-5 w-5 text-white" />
                       </button>
 
-                      <!-- Dropdown Menu -->
-                      <Transition enter-active-class="transition ease-out duration-100"
-                        enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
-                        leave-active-class="transition ease-in duration-75"
-                        leave-from-class="transform opacity-100 scale-100"
-                        leave-to-class="transform opacity-0 scale-95">
-                        <div v-if="showActionsDropdown"
-                          class="absolute left-12 top-0 w-56 rounded-lg bg-white dark:bg-gray-700 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                          <div class="py-1">
-                            <button @click="handleDropdownAction(showNotes)"
-                              class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                              <DocumentTextIcon class="h-5 w-5 mr-3 text-amber-600 dark:text-amber-400" />
-                              Notlar
+                      <!-- Dropdown -->
+                      <Transition
+                        enter-active-class="transition ease-out duration-200"
+                        enter-from-class="opacity-0 translate-y-1"
+                        enter-to-class="opacity-100 translate-y-0"
+                        leave-active-class="transition ease-in duration-150"
+                        leave-from-class="opacity-100 translate-y-0"
+                        leave-to-class="opacity-0 translate-y-1"
+                      >
+                        <div 
+                          v-if="showActionsDropdown"
+                          class="absolute left-0 top-12 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-20"
+                        >
+                          <div class="p-2">
+                            <button 
+                              @click="handleDropdownAction(showNotes)"
+                              class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <div class="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                <DocumentTextIcon class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              </div>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Notlar</span>
                             </button>
-                            <button @click="handleDropdownAction(showDoctorAssignment)"
-                              class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                              <UserIcon class="h-5 w-5 mr-3 text-purple-600 dark:text-purple-400" />
-                              Doktor Görüşü
+                            <button 
+                              @click="handleDropdownAction(showDoctorAssignment)"
+                              class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <div class="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                <UserIcon class="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Doktor Görüşü</span>
                             </button>
-                            <button @click="handleDropdownAction(showServices)"
-                              class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                              <ShoppingBagIcon class="h-5 w-5 mr-3 text-green-600 dark:text-green-400" />
-                              Hizmetler
+                            <button 
+                              @click="handleDropdownAction(showServices)"
+                              class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <div class="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                <ShoppingBagIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                              </div>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Hizmetler</span>
                             </button>
-                            <button @click="handleDropdownAction(showFiles)"
-                              class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                              <FolderIcon class="h-5 w-5 mr-3 text-cyan-600 dark:text-cyan-400" />
-                              Dosyalar
+                            <button 
+                              @click="handleDropdownAction(showFiles)"
+                              class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <div class="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+                                <FolderIcon class="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                              </div>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dosyalar</span>
                             </button>
-                            <div class="border-t border-gray-100 dark:border-gray-600"></div>
-                            <button v-if="!isDoctor"
-                              @click="handleDropdownAction(() => router.push(`/customers/edit/${route.params.id}`))"
-                              class="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                              <PencilIcon class="h-5 w-5 mr-3 text-indigo-600 dark:text-indigo-400" />
-                              Düzenle
-                            </button>
+                            <div v-if="!isDoctor" class="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                              <button 
+                                @click="handleDropdownAction(() => router.push(`/customers/edit/${route.params.id}`))"
+                                class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                              >
+                                <div class="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                                  <PencilIcon class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Düzenle</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </Transition>
                     </div>
-
-                    <!-- Label -->
-                    <div class="flex-1 flex items-center h-8">
-                      <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Yeni İşlem Ekle</p>
-                    </div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Yeni İşlem Ekle</p>
                   </div>
                 </div>
 
-                <div v-for="(item, index) in history" :key="item.id" class="relative">
-                  <!-- Timeline line -->
-                  <div v-if="index < history.length - 1"
-                    class="absolute left-4 top-10 h-full w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                <!-- History Items -->
+                <div class="space-y-4">
+                  <div 
+                    v-for="(item, index) in history" 
+                    :key="item.id" 
+                    class="relative pl-14"
+                  >
+                    <!-- Timeline Line -->
+                    <div 
+                      v-if="index < history.length - 1"
+                      class="absolute left-5 top-12 bottom-0 w-0.5 bg-gradient-to-b from-gray-200 to-transparent dark:from-gray-700"
+                    ></div>
 
-                  <!-- Timeline item -->
-                  <div class="flex items-start space-x-4">
                     <!-- Icon -->
-                    <div
-                      class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 ring-4 ring-white dark:ring-gray-800">
-                      <component :is="getActionIcon(item.action)" class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <div class="absolute left-0 top-0">
+                      <div :class="[
+                        'h-10 w-10 rounded-xl flex items-center justify-center shadow-sm',
+                        getActionColorClasses(item.action)
+                      ]">
+                        <component :is="getActionIcon(item.action)" class="h-4 w-4" />
+                      </div>
                     </div>
 
-                    <!-- Content -->
-                    <div class="flex-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                      <div class="flex items-start justify-between">
+                    <!-- Content Card -->
+                    <div class="bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                         <div class="flex-1">
-                          <p class="text-sm font-medium text-gray-900 dark:text-white">
+                          <p class="text-sm font-semibold text-gray-900 dark:text-white">
                             {{ item.action || 'İşlem' }}
                           </p>
-                          <p v-if="item.description" class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                          <p v-if="item.description" class="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                             {{ item.description }}
                           </p>
-                          <!-- Request Data -->
-                          <div class="relative" v-if="showStates[item.id]">
-                            <div v-if="item.requestData" class="mt-2">
-                              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">İstek Verisi:</p>
-                              <p
-                                class="text-xs text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-1 rounded mt-1">
-                                {{ item.requestData }}
-                              </p>
+                          
+                          <!-- Expandable Data -->
+                          <Transition
+                            enter-active-class="transition-all duration-300 ease-out"
+                            enter-from-class="opacity-0 max-h-0"
+                            enter-to-class="opacity-100 max-h-96"
+                            leave-active-class="transition-all duration-200 ease-in"
+                            leave-from-class="opacity-100 max-h-96"
+                            leave-to-class="opacity-0 max-h-0"
+                          >
+                            <div v-if="showStates[item.id]" class="mt-3 space-y-2 overflow-hidden">
+                              <div v-if="item.requestData" class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">İstek Verisi</p>
+                                <pre class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">{{ item.requestData }}</pre>
+                              </div>
+                              <div v-if="item.responseData" class="bg-white dark:bg-gray-800 rounded-lg p-3">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Yanıt Verisi</p>
+                                <pre class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">{{ item.responseData }}</pre>
+                              </div>
                             </div>
-                            <!-- Response Data -->
-                            <div v-if="item.responseData" class="mt-2">
-                              <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Yanıt Verisi:</p>
-                              <p
-                                class="text-xs text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-1 rounded mt-1">
-                                {{ item.responseData }}
-                              </p>
-                            </div>
-                          </div>
-                          <button v-if="item.requestData || item.responseData" class="py-1 dark:text-white text-xs"
-                            @click="toggleShow(item.id)">{{ showStates[item.id] ? 'Gizle' : 'Göster' }}</button>
-
+                          </Transition>
+                          
+                          <button 
+                            v-if="item.requestData || item.responseData" 
+                            @click="toggleShow(item.id)"
+                            class="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                          >
+                            {{ showStates[item.id] ? 'Gizle' : 'Detayları Göster' }}
+                          </button>
                         </div>
-                        <div class="ml-4 text-right">
-                          <p class="text-xs text-gray-500 dark:text-gray-400">
+
+                        <div class="flex flex-col items-end gap-1 text-right shrink-0">
+                          <p class="text-xs font-medium text-gray-900 dark:text-white">
                             {{ formatHistoryDate(item.createdAt || item.updatesAt) }}
                           </p>
-                          <p class="text-xs text-gray-400 dark:text-gray-500">
+                          <p class="text-xs text-gray-500 dark:text-gray-400">
                             {{ formatTime(item.createdAt || item.updatesAt) }}
                           </p>
-                          <p v-if="item.user || item.userInfo"
-                            class="mt-1 text-xs font-medium text-gray-600 dark:text-gray-400">
-                            <UserIcon class="inline h-3 w-3 mr-1" />
+                          <p 
+                            v-if="item.user || item.userInfo"
+                            class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"
+                          >
+                            <UserIcon class="h-3 w-3" />
                             {{ item.user?.name || item.userInfo?.name || 'Sistem' }}
                           </p>
                         </div>
@@ -408,42 +544,39 @@
               </div>
 
               <!-- Empty State -->
-              <div v-else class="text-center py-12">
-                <ClockIcon class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Geçmiş Bulunamadı</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <div v-else class="flex flex-col items-center justify-center py-16">
+                <div class="h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+                  <ClockIcon class="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Geçmiş Bulunamadı</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
                   Bu müşteri için henüz geçmiş kaydı bulunmuyor.
                 </p>
               </div>
             </div>
 
             <!-- Footer -->
-            <div class="border-t dark:border-gray-700 px-6 py-3">
-              <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Toplam <span class="font-medium">{{ history.length }}</span> kayıt
-              </p>
+            <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Toplam <span class="font-semibold text-gray-900 dark:text-white">{{ history.length }}</span> kayıt
+                </p>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                  <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                  Canlı güncelleme aktif
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Customer Notes Modal -->
-    <CustomerNotesModal :show="showNotesModal" :customer="customer" @close="showNotesModal = false"
-      @customer-updated="refreshData" />
-
-    <!-- Doctor Assignment Modal -->
-    <DoctorAssignmentModal :show="showDoctorModal" :customer="customer" @close="showDoctorModal = false"
-      @assigned="handleDoctorAssigned" />
-
-    <!-- Customer Services Modal -->
-    <CustomerServicesModal :show="showServicesModal" :customer="customer" @close="showServicesModal = false"
-      @saved="handleServicesSaved" />
-
-    <!-- Customer Files Modal -->
+    <!-- Modals -->
+    <CustomerNotesModal :show="showNotesModal" :customer="customer" @close="showNotesModal = false" @customer-updated="refreshData" />
+    <DoctorAssignmentModal :show="showDoctorModal" :customer="customer" @close="showDoctorModal = false" @assigned="handleDoctorAssigned" />
+    <CustomerServicesModal :show="showServicesModal" :customer="customer" @close="showServicesModal = false" @saved="handleServicesSaved" />
     <CustomerFilesModal :show="showFilesModal" :customer="customer" @close="showFilesModal = false" />
-
-    <!-- Operation Follow Up Modal -->
     <OperationFollowUpModal :show="showOperationFollowUp" :customer="customer" @close="showOperationFollowUp = false" />
   </div>
 </template>
@@ -460,7 +593,6 @@ import {
   PhoneIcon,
   MapPinIcon,
   CalendarIcon,
-  BriefcaseIcon,
   GlobeAltIcon,
   ArrowLeftIcon,
   PlusIcon,
@@ -470,32 +602,31 @@ import {
   ArrowPathIcon,
   ViewfinderCircleIcon,
   CursorArrowRippleIcon,
-  FingerPrintIcon,
-  CursorArrowRaysIcon
+  ChevronRightIcon,
+  UsersIcon,
+  ExclamationTriangleIcon,
+  HashtagIcon,
+  CheckIcon,
+  BellAlertIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
-
-// Permissions
 const { userId, isDoctor, isUser } = usePermissions()
 
-// Reactive state
+// State
 const customer = ref(null)
 const loading = ref(true)
 const error = ref('')
 const customerDynamicFields = ref([])
 const loadingDynamicFields = ref(false)
 const statuses = ref([])
-const locations = ref({
-  countries: [],
-  states: [],
-  cities: []
-})
+const locations = ref({ countries: [], states: [], cities: [] })
 const history = ref([])
 const loadingHistory = ref(false)
 const showStates = ref({})
-const phoneRevealed = ref(false) // ✅ Telefon görünürlüğü
+const phoneRevealed = ref(false)
 
 // Engagement Timer
 const activeEngagement = ref(null)
@@ -510,60 +641,46 @@ const showFilesModal = ref(false)
 const showActionsDropdown = ref(false)
 const showOperationFollowUp = ref(false)
 
-// Computed properties
+// Computed
 const locationText = computed(() => {
   if (!customer.value) return ''
-
   const parts = []
   const country = locations.value.countries.find(c => c.id === customer.value.country)
   const state = locations.value.states.find(s => s.id === customer.value.state)
   const city = locations.value.cities.find(c => c.id === customer.value.city)
-
   if (customer.value.district) parts.push(customer.value.district)
   if (city) parts.push(city.name)
   if (state) parts.push(state.name)
   if (country) parts.push(country.name)
-
   return parts.join(', ')
 })
 
 const customerStatus = computed(() => {
   if (!customer.value || !customer.value.status) return null
-  const status = statuses.value.find(s => s.id === customer.value.status)
-  return status || null
+  return statuses.value.find(s => s.id === customer.value.status) || null
 })
-
 
 const isEngagementOwner = computed(() => {
   if (!activeEngagement.value || !userId) return false
   return activeEngagement.value.userId === userId.value
 })
 
-// Format engagement time (elapsed since assignment)
 const formattedEngagementTime = computed(() => {
   if (!engagementTimer.value) return '0 dk 0 sn'
-
   const totalSeconds = engagementTimer.value
   const days = Math.floor(totalSeconds / 86400)
   const hours = Math.floor((totalSeconds % 86400) / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
 
-  if (days > 0) {
-    return `${days} gün ${hours} saat ${minutes} dk`
-  } else if (hours > 0) {
-    return `${hours} saat ${minutes} dk ${seconds} sn`
-  } else if (minutes > 0) {
-    return `${minutes} dk ${seconds} sn`
-  } else {
-    return `${seconds} sn`
-  }
+  if (days > 0) return `${days} gün ${hours} saat ${minutes} dk`
+  if (hours > 0) return `${hours} saat ${minutes} dk ${seconds} sn`
+  if (minutes > 0) return `${minutes} dk ${seconds} sn`
+  return `${seconds} sn`
 })
 
 // Methods
-const toggleShow = (id) => {
-  showStates.value[id] = !showStates.value[id]
-}
+const toggleShow = (id) => showStates.value[id] = !showStates.value[id]
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -576,214 +693,136 @@ const formatDate = (dateString) => {
   })
 }
 
+const formatShortDate = (dateString) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
+}
 
 const getRemainingTime = (remindingDate) => {
   if (!remindingDate) return ''
-  
   const now = new Date()
   const target = new Date(remindingDate)
   const diff = target.getTime() - now.getTime()
   
-  // Geçmiş tarih
   if (diff < 0) {
-    const absDiff = Math.abs(diff)
-    const hours = Math.floor(absDiff / (1000 * 60 * 60))
+    const hours = Math.floor(Math.abs(diff) / (1000 * 60 * 60))
     const days = Math.floor(hours / 24)
-    
     if (days > 0) return `${days} gün gecikmiş`
     if (hours > 0) return `${hours} saat gecikmiş`
     return 'Az önce geçti'
   }
   
-  // Gelecek tarih
-  const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(diff / (1000 * 60 * 60))
   const days = Math.floor(hours / 24)
-  
   if (days > 0) return `${days} gün kaldı`
   if (hours > 0) return `${hours} saat kaldı`
-  if (minutes > 0) return `${minutes} dakika kaldı`
   return 'Şimdi'
 }
 
 const getRemainingTimeClass = (remindingDate) => {
   if (!remindingDate) return ''
-  
-  const now = new Date()
-  const target = new Date(remindingDate)
-  const diff = target.getTime() - now.getTime()
+  const diff = new Date(remindingDate).getTime() - new Date().getTime()
   const hours = diff / (1000 * 60 * 60)
-  
-  if (diff < 0) {
-    // Gecikmiş
-    return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-  } else if (hours <= 1) {
-    // 2 saat içinde
-    return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-  } else if (hours <= 24) {
-    // 24 saat içinde
-    return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-  } else {
-    // 24 saatten fazla
-    return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-  }
+  if (diff < 0) return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+  if (hours <= 1) return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+  if (hours <= 24) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+  return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
 }
-
 
 const formatHistoryDate = (dateString) => {
   if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('tr-TR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return new Date(dateString).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 const formatTime = (dateString) => {
   if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('tr-TR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return new Date(dateString).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
 }
 
 const formatBirthDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('tr-TR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return new Date(dateString).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 const getGenderText = (gender) => {
-  const genders = {
-    'male': 'Erkek',
-    'female': 'Kadın',
-    'other': 'Diğer'
-  }
+  const genders = { 'male': 'Erkek', 'female': 'Kadın', 'other': 'Diğer' }
   return genders[gender] || gender
 }
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    return imagePath
-  }
+  if (imagePath.startsWith('http')) return imagePath
   const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase || 'http://localhost:3001'
-  return `${baseURL}/${imagePath}`
+  return `${config.public.apiBase || 'http://localhost:3001'}/${imagePath}`
 }
 
 const getActionIcon = (action) => {
-  switch (action) {
-    case 'created':
-      return PlusIcon
-    case 'updated':
-      return PencilIcon
-    case 'deleted':
-      return TrashIcon
-    case 'status_changed':
-      return ArrowPathIcon
-    case 'email_sent':
-      return EnvelopeIcon
-    case 'phone_called':
-      return PhoneIcon
-    case 'address_changed':
-      return MapPinIcon
-    case 'activated':
-      return CheckCircleIcon
-    case 'deactivated':
-      return XCircleIcon
-    default:
-      return ClockIcon
+  const icons = {
+    'created': PlusIcon,
+    'updated': PencilIcon,
+    'deleted': TrashIcon,
+    'status_changed': ArrowPathIcon,
+    'email_sent': EnvelopeIcon,
+    'phone_called': PhoneIcon,
+    'address_changed': MapPinIcon,
+    'activated': CheckCircleIcon,
+    'deactivated': XCircleIcon
   }
+  return icons[action] || ClockIcon
 }
 
-const goBack = () => {
-  router.back()
+const getActionColorClasses = (action) => {
+  const colors = {
+    'created': 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+    'updated': 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    'deleted': 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+    'status_changed': 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    'email_sent': 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    'phone_called': 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400'
+  }
+  return colors[action] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
 }
 
-// Dropdown functions
-const toggleActionsDropdown = () => {
-  showActionsDropdown.value = !showActionsDropdown.value
-}
-
+const goBack = () => router.back()
+const toggleActionsDropdown = () => showActionsDropdown.value = !showActionsDropdown.value
 const handleDropdownAction = (action) => {
   showActionsDropdown.value = false
   action()
 }
 
-// Close dropdown when clicking outside
-const handleClickOutside = (event) => {
-  const dropdown = event.target.closest('.relative')
-  if (!dropdown && showActionsDropdown.value) {
-    showActionsDropdown.value = false
-  }
-}
+const showNotes = () => showNotesModal.value = true
+const showDoctorAssignment = () => showDoctorModal.value = true
+const showServices = () => showServicesModal.value = true
+const showFiles = () => showFilesModal.value = true
+const showOperationFollowUpModal = () => showOperationFollowUp.value = true
 
-const showNotes = () => {
-  showNotesModal.value = true
-}
-
-const showDoctorAssignment = () => {
-  showDoctorModal.value = true
-}
-
-const handleDoctorAssigned = (assignment) => {
-  console.log('Doctor assigned:', assignment)
-  refreshData()
-}
-
-const showServices = () => {
-  showServicesModal.value = true
-}
-
-const showOperationFollowUpModal = () => {
-  showOperationFollowUp.value = true
-}
-
+const handleDoctorAssigned = () => refreshData()
 const handleServicesSaved = () => {
-  console.log('Services saved successfully')
   showServicesModal.value = false
   refreshData()
 }
 
-const showFiles = () => {
-  showFilesModal.value = true
-}
-
-// ✅ Telefon numarasını göster - First Call tracking
 const revealPhone = async () => {
   phoneRevealed.value = true
-
-  // Backend'e first call kaydı gönder
   try {
     const api = useApi()
-    await api(`/customers/${route.params.id}/view-phone`, {
-      method: 'POST'
-    })
+    await api(`/customers/${route.params.id}/view-phone`, { method: 'POST' })
   } catch (error) {
     console.error('Error registering phone view:', error)
   }
 }
 
-// Timer functions
+// Timer
 const startEngagementTimer = () => {
   if (!activeEngagement.value?.assignedAt) return
-
   const calculateElapsedTime = () => {
     const assignedTime = new Date(activeEngagement.value.assignedAt).getTime()
-    const currentTime = Date.now()
-    const elapsedSeconds = Math.floor((currentTime - assignedTime) / 1000)
-    engagementTimer.value = elapsedSeconds
+    engagementTimer.value = Math.floor((Date.now() - assignedTime) / 1000)
   }
-
-  // Calculate initial time
   calculateElapsedTime()
-
-  // Update every second
   timerInterval = setInterval(calculateElapsedTime, 1000)
 }
 
@@ -794,7 +833,7 @@ const stopEngagementTimer = () => {
   }
 }
 
-// Data fetching functions
+// Data fetching
 const fetchLocations = async () => {
   try {
     const api = useApi()
@@ -804,13 +843,7 @@ const fetchLocations = async () => {
       api('/cities'),
       api('/statuses').catch(() => [])
     ])
-
-    locations.value = {
-      countries: countriesRes,
-      states: statesRes,
-      cities: citiesRes
-    }
-
+    locations.value = { countries: countriesRes, states: statesRes, cities: citiesRes }
     const rawStatuses = statusesRes.data || statusesRes || []
     statuses.value = rawStatuses.map(status => ({
       ...status,
@@ -826,27 +859,17 @@ const fetchLocations = async () => {
   }
 }
 
-
 const fetchCustomer = async () => {
   try {
     loading.value = true
     error.value = ''
-
     const api = useApi()
     const response = await api(`/customers/${route.params.id}`)
-
-    // Enrich customer with status info
     if (response.status && statuses.value.length > 0) {
       const statusInfo = statuses.value.find(s => s.id === response.status)
-      if (statusInfo) {
-        response.status_info = statusInfo
-        response.statusInfo = statusInfo
-      }
+      if (statusInfo) response.statusInfo = statusInfo
     }
-
     customer.value = response
-
-    // Set active engagement if exists
     if (response.activeEngagement) {
       activeEngagement.value = response.activeEngagement
       startEngagementTimer()
@@ -860,9 +883,9 @@ const fetchCustomer = async () => {
     if (err?.data?.statusCode === 404 || err?.status === 404) {
       error.value = 'Müşteri bulunamadı.'
     } else if (err?.data?.statusCode === 401 || err?.status === 401) {
-      error.value = 'Oturum açmanız gerekiyor. Lütfen giriş yapın.'
+      error.value = 'Oturum açmanız gerekiyor.'
     } else {
-      error.value = `Müşteri bilgileri yüklenirken bir hata oluştu: ${err?.data?.message || err?.message || 'Bilinmeyen hata'}`
+      error.value = `Müşteri bilgileri yüklenirken bir hata oluştu.`
     }
   } finally {
     loading.value = false
@@ -891,15 +914,13 @@ const fetchCustomerDynamicFields = async () => {
 
 const fetchCustomerHistory = async () => {
   if (!customer.value?.id) return
-
   loadingHistory.value = true
   try {
     const customerHistoriesStore = useCustomerHistoriesStore()
     const histories = await customerHistoriesStore.fetchCustomerHistories(customer.value.id)
-
     history.value = histories.sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.created_at || a.updatesAt || a.updated_at || 0)
-      const dateB = new Date(b.createdAt || b.created_at || b.updatesAt || b.updated_at || 0)
+      const dateA = new Date(a.createdAt || a.created_at || 0)
+      const dateB = new Date(b.createdAt || b.created_at || 0)
       return dateB - dateA
     })
   } catch (error) {
@@ -916,13 +937,18 @@ const refreshData = async () => {
   await fetchCustomerHistory()
 }
 
-// Lifecycle hooks
+const handleClickOutside = (event) => {
+  const dropdown = event.target.closest('.relative')
+  if (!dropdown && showActionsDropdown.value) showActionsDropdown.value = false
+}
+
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   await fetchLocations()
   await fetchCustomer()
   await fetchCustomerDynamicFields()
   await fetchCustomerHistory()
+  setInterval(refreshData, 60000) // Refresh data every 5 minutes
 })
 
 onUnmounted(() => {
@@ -930,12 +956,7 @@ onUnmounted(() => {
   stopEngagementTimer()
 })
 
-// Page title
 useHead({
-  title: computed(() =>
-    customer.value
-      ? `${customer.value.name} ${customer.value.surname} - Müşteri Detayı`
-      : 'Müşteri Detayı'
-  )
+  title: computed(() => customer.value ? `${customer.value.name} - Müşteri Detayı` : 'Müşteri Detayı')
 })
 </script>

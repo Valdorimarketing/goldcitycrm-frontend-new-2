@@ -134,67 +134,7 @@
               </div>
             </div>
 
-            <!-- Atanan Müşteriler Kartı -->
-            <div class="card">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Atanan Müşteriler</h3>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
-                  {{ assignedCustomers.total }}
-                </span>
-              </div>
-
-              <!-- Loading -->
-              <div v-if="loadingCustomers" class="space-y-3">
-                <div v-for="i in 3" :key="i" class="flex items-center space-x-3">
-                  <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  <div class="flex-1">
-                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Customer Stats -->
-              <div v-else class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">İşlem Bekleyen</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.pending }}
-                  </span>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-blue-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Hatırlatmalı</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.withReminder }}
-                  </span>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Satış</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ assignedCustomers.sales }}
-                  </span>
-                </div>
-
-                <!-- View All Button -->
-                <NuxtLink
-                  :to="isOwnProfile ? '/customers' : `/customers?user=${profileUserId}`"
-                  class="block w-full text-center text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium mt-4"
-                >
-                  {{ isOwnProfile ? 'Tüm Müşterileri Görüntüle' : 'Kullanıcının Müşterilerini Görüntüle' }} →
-                </NuxtLink>
-              </div>
-            </div>
+       
           </div>
         </div>
 
@@ -494,12 +434,7 @@ const todayStats = ref({
   sales: 0
 })
 
-const assignedCustomers = ref({
-  total: 0,
-  pending: 0,
-  withReminder: 0,
-  sales: 0
-})
+ 
 
 const timeline = ref([])
 const timelinePage = ref(1)
@@ -718,80 +653,8 @@ const fetchProfileUser = async () => {
   }
 }
 
-const fetchTodayStats = async () => {
-  try {
-    const api = useApi()
-    const userId = profileUserId.value
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const response = await api('/customer-history', {
-      query: {
-        userId,
-        startDate: today.toISOString()
-      }
-    })
-
-    const activities = Array.isArray(response) ? response : (response.data || [])
-
-    todayStats.value = {
-      added: activities.filter(a => a.action === 'Müşteri Oluşturuldu').length,
-      updated: activities.filter(a => a.action === 'Müşteri Güncellendi').length,
-      notes: activities.filter(a => a.action === 'Not Eklendi').length,
-      sales: activities.filter(a => a.action === 'Satış Oluşturuldu').length
-    }
-  } catch (error) {
-    console.error('Error fetching today stats:', error)
-  }
-}
-
-const fetchAssignedCustomers = async () => {
-  loadingCustomers.value = true
-  try {
-    const api = useApi()
-    const userId = profileUserId.value
-
-    const response = await api('/customers', {
-      query: {
-        relevantUser: userId
-      }
-    })
-
-    const customers = Array.isArray(response) ? response : (response.data || [])
-
-    // Müşteri istatistiklerini hesapla
-    const stats = {
-      total: customers.length,
-      pending: 0,
-      withReminder: 0,
-      sales: 0
-    }
-
-    customers.forEach(customer => {
-      // İşlem bekleyen (status 1 veya 2 olan)
-      if (customer.status === 1 || customer.status === 2) {
-        stats.pending++
-      }
-      
-      // Hatırlatmalı
-      if (customer.remindingDate) {
-        stats.withReminder++
-      }
-      
-      // Satış (statusData'da isSale true olan veya status 3)
-      if (customer.statusData?.isSale || customer.status === 3) {
-        stats.sales++
-      }
-    })
-
-    assignedCustomers.value = stats
-  } catch (error) {
-    console.error('Error fetching assigned customers:', error)
-  } finally {
-    loadingCustomers.value = false
-  }
-}
+ 
+ 
 
 const fetchTimeline = async (page = 1) => {
   if (page === 1) {
@@ -808,13 +671,19 @@ const fetchTimeline = async (page = 1) => {
       query: {
         userId,
         page,
-        limit: 20
+        limit: 50
       }
     })
 
     // Backend artık { data: [], meta: {} } formatında dönüyor
     const result = response.data ? response : { data: response, meta: {} }
     let activities = result.data || []
+    todayStats.value = {
+      added: activities.filter(a => a.action === 'Müşteri Oluşturuldu').length,
+      updated: activities.filter(a => a.action === 'Müşteri Güncellendi').length,
+      notes: activities.filter(a => a.action === 'Not Eklendi').length,
+      sales: activities.filter(a => a.action === 'Satış Oluşturuldu').length
+    }
 
     // Aktiviteleri statusChange ekle
     activities = activities.map(activity => ({
@@ -857,9 +726,7 @@ watch(() => route.params.id, async () => {
   // Reload data
   await fetchProfileUser()
   if (profileUser.value) {
-    await Promise.all([
-      fetchTodayStats(),
-      fetchAssignedCustomers(),
+    await Promise.all([ 
       fetchTimeline()
     ])
   }
@@ -869,9 +736,7 @@ watch(() => route.params.id, async () => {
 onMounted(async () => {
   await fetchProfileUser()
   if (profileUser.value) {
-    await Promise.all([
-      fetchTodayStats(),
-      fetchAssignedCustomers(),
+    await Promise.all([ 
       fetchTimeline()
     ])
   }
