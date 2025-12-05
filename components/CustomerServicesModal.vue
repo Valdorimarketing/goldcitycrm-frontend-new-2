@@ -436,12 +436,11 @@ const newService = ref({
 
 // Computed
 const filteredProducts = computed(() => {
-  if (!productSearch.value) return products.value.slice(0, 10)
+  if (!productSearch.value) return products.value.slice(0, 5)
 
   const search = productSearch.value.toLowerCase()
   return products.value
     .filter(p => p.name.toLowerCase().includes(search))
-    .slice(0, 10)
 })
 
 // Yeni Hizmetler Toplamları
