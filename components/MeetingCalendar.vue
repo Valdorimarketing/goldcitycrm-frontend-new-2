@@ -59,7 +59,7 @@ const events = computed(() => {
   const now = new Date()
 
   return props.meetings.map(meeting => {
-    const status = props.statuses.find(s => s.id === meeting.meetingStatus) 
+    const status = props.statuses.find(s => s.id === meeting.meetingStatusId) 
     let color = '#3B82F6' // default: Randevu Verildi 
     
  
@@ -76,6 +76,9 @@ const events = computed(() => {
         break
       case 4:
         color = '#9CA3AF'
+        break
+      case 5:
+        color = '#c92840'
         break
       default:
         color = '#3B82F6'

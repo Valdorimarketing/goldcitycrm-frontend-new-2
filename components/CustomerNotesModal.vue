@@ -449,31 +449,29 @@ const addNote = async () => {
       const selectedStatusObj = availableStatuses.value.find(s => s.id === selectedStatus.value)
       isSaleStatus = selectedStatusObj?.is_sale || selectedStatusObj?.isSale
 
-      if (isSaleStatus) {
-        try {
-          const unsoldProducts = await fetchUnsoldProducts(props.customer.id)
-          if (!unsoldProducts || unsoldProducts.length === 0) {
-            alert('Satış yapılamaz. Önce ürün girilmeli')
-            addingNote.value = false
-            return
-          }
-        } catch (error) {
-          console.error('Error fetching unsold products:', error)
-          alert('Ürünler kontrol edilirken hata oluştu')
-          addingNote.value = false
-          return
-        }
-      }
+      // if (isSaleStatus) {
+      //   try {
+      //     const unsoldProducts = await fetchUnsoldProducts(props.customer.id)
+      //     if (!unsoldProducts || unsoldProducts.length === 0) {
+      //       alert('Satış yapılamaz. Önce ürün girilmeli')
+      //       addingNote.value = false
+      //       return
+      //     }
+      //   } catch (error) {
+      //     console.error('Error fetching unsold products:', error)
+      //     alert('Ürünler kontrol edilirken hata oluştu')
+      //     addingNote.value = false
+      //     return
+      //   }
+      // }
 
       try {
         await customersStore.updateCustomer(props.customer.id, { status: selectedStatus.value })
         statusUpdateSuccess = true
 
-        if (!isSaleStatus) {
-          await customersStore.fetchCustomer(props.customer.id)
-          emit('customer-updated')
-          showSuccess('Müşteri durumu güncellendi')
-        }
+        await customersStore.fetchCustomer(props.customer.id)
+        emit('customer-updated')
+        showSuccess('Müşteri durumu güncellendi')
       } catch (error) {
         console.error('Error updating customer status:', error)
         const errorMessage = error?.data?.message || 'Durum güncellenirken hata oluştu'
@@ -499,10 +497,6 @@ const addNote = async () => {
 
     await fetchNotes()
 
-    if (statusUpdateSuccess && isSaleStatus) {
-      pendingStatusId.value = selectedStatus.value
-      showConvertToSaleModal.value = true
-    }
   } catch (error) {
     console.error('Error adding note:', error)
     showError('Not eklenirken hata oluştu')

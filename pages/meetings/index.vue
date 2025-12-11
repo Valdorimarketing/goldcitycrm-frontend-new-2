@@ -102,8 +102,8 @@
               <th class="table-header text-gray-700 dark:text-gray-300">Müşteri</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Hastane</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Doktor</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">⏰ Başlangıç</th>
-              <th class="table-header text-gray-700 dark:text-gray-300">⏰ Bitiş</th>
+              <th class="table-header text-gray-700 dark:text-gray-300">Başlangıç</th>
+              <th class="table-header text-gray-700 dark:text-gray-300">Bitiş</th>
               <th class="table-header text-gray-700 dark:text-gray-300">Durum</th>
               <th class="table-header text-gray-700 dark:text-gray-300">İşlemler</th>
             </tr>
@@ -142,8 +142,8 @@
                 </div>
               </td>
               <td class="table-cell">
-                <span :class="getStatusBadgeClass(meeting.meetingStatus)">
-                  {{ getStatusName(meeting.meetingStatus) }}
+                <span :class="getStatusBadgeClass(meeting.meetingStatusId)">
+                  {{ getStatusName(meeting.meetingStatusId) }}
                 </span>
               </td>
               <td class="table-cell">
@@ -285,7 +285,7 @@
           <div class="bg-white dark:bg-gray-800 px-4 pb-4 pt-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                📅 Görüşme Detayları
+                 Görüşme Detayları
               </h3>
               <button @click="showViewModal = false" class="text-gray-400 hover:text-gray-500">
                 <span class="sr-only">Kapat</span>
@@ -303,8 +303,8 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Durum</label>
                   <p class="mt-1">
-                    <span :class="getStatusBadgeClass(selectedMeeting.meetingStatus)">
-                      {{ getStatusName(selectedMeeting.meetingStatus) }}
+                    <span :class="getStatusBadgeClass(selectedMeeting.meetingStatusId)">
+                      {{ getStatusName(selectedMeeting.meetingStatusId) }}
                     </span>
                   </p>
                 </div>
