@@ -19,8 +19,11 @@ export interface Proforma {
   
   // GENERAL INFORMATION
   patientName?: string;
+  hospitalId?: number | null;  // ✅ Yeni
   hospital: string;
+  doctorId?: number | null;  // ✅ Yeni
   physicianName?: string;
+  branchId?: number | null;  // ✅ Yeni
   physicianDepartment?: string;
   age?: string;
   country?: string;
@@ -285,7 +288,12 @@ export const useProformaStore = defineStore('proforma', () => {
   const createEmptyProforma = (): Partial<Proforma> => {
     return {
       date: new Date().toISOString().split('T')[0],
-      hospital: 'Liv Hospital Vadistanbul',
+      hospitalId: null,  // ✅ Yeni - null olarak başla
+      hospital: '',  // ✅ Değiştirildi - boş string
+      doctorId: null,  // ✅ Yeni - null olarak başla
+      physicianName: '',  // ✅ Değiştirildi - boş string
+      branchId: null,  // ✅ Yeni - null olarak başla
+      physicianDepartment: '',  // ✅ Değiştirildi - boş string
       treatmentItems: [],
       grandTotal: 0,
       currency: 'USD',

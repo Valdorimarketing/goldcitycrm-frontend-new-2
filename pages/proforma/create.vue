@@ -15,7 +15,6 @@
         <button @click="handleCancel" class="btn-secondary">
           İptal
         </button>
-      
         
         <button @click="handleSave" class="btn-primary" :disabled="loading">
           <svg v-if="!loading" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,29 +56,24 @@
       <div class="form-section">
         <div class="section-header">
           <h2 class="section-title">GENEL BİLGİLER</h2>
-          <p class="section-description">Hasta ve doktor bilgileri</p>
+          <p class="section-description">Hasta ve doktor bilgileri (Opsiyonel alanlar)</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="form-label">Hasta Adı</label>
-            <input v-model="formData.patientName" type="text" class="form-input" placeholder="MAİSON NURİ SALİH" />
+            <label class="form-label">Hasta Adı *</label>
+            <input v-model="formData.patientName" type="text" class="form-input" placeholder="MAİSON NURİ SALİH" required />
           </div>
-
-          <div>
-            <label class="form-label">Hastane</label>
-            <input v-model="formData.hospital" type="text" class="form-input" placeholder="Liv Hospital Vadi istanbul" />
-          </div>
-
-           <div class="relative">
+ 
+          <div class="relative">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Hastane
+              Hastane <span class="text-xs text-gray-500">(Opsiyonel)</span>
             </label>
             <input
               v-model="hospitalSearch"
               type="text"
               class="form-input"
-              placeholder="Hastane adi yazin..."
+              placeholder="Hastane adı yazın veya boş bırakın..."
               @focus="showHospitalDropdown = true"
               @blur="hideHospitalDropdown"
             />
@@ -94,18 +88,21 @@
                 {{ hospital.name }}
               </button>
             </div>
+            <p v-if="formData.hospital" class="mt-1 text-xs text-green-600 dark:text-green-400">
+              ✓ {{ formData.hospital }}
+            </p>
           </div>
 
-        <div class="relative">
+          <div class="relative">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Doktor
+              Doktor <span class="text-xs text-gray-500">(Opsiyonel)</span>
             </label>
             <input
               v-model="doctorSearch"
               type="text"
               class="form-input"
               :disabled="!hospitalId"
-              placeholder="Doktor adi yazin..."
+              placeholder="Önce hastane seçin veya boş bırakın..."
               @focus="showDoctorDropdown = true"
               @blur="hideDoctorDropdown"
             />
@@ -120,15 +117,40 @@
                 {{ doctor.name }}
               </button>
             </div>
-            <p v-if="formData.hospitalId" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p v-if="formData.hospitalId && !formData.physicianName" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ filteredDoctors.length }} doktor mevcut
+            </p>
+            <p v-if="formData.physicianName" class="mt-1 text-xs text-green-600 dark:text-green-400">
+              ✓ {{ formData.physicianName }}
             </p>
           </div>
 
-
-          <div>
-            <label class="form-label">Doktor Departmanı</label>
-            <input v-model="formData.physicianDepartment" type="text" class="form-input" placeholder="Orthopedic Surgery" />
+          <div class="relative">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Doktor Departmanı <span class="text-xs text-gray-500">(Opsiyonel)</span>
+            </label>
+            <input
+              v-model="branchSearch"
+              type="text"
+              class="form-input"
+              placeholder="Branş adı yazın veya boş bırakın..."
+              @focus="showBranchDropdownList"
+              @blur="hideBranchDropdown"
+            />
+            <div v-if="showBranchDropdown && filteredBranchForSearch.length > 0" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700 max-h-60 overflow-auto">
+              <button
+                v-for="branch in filteredBranchForSearch"
+                :key="branch.id"
+                type="button"
+                @mousedown.prevent="selectBranch(branch)"
+                class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-900 dark:text-gray-100"
+              >
+                {{ branch.name }}
+              </button>
+            </div>
+            <p v-if="formData.physicianDepartment" class="mt-1 text-xs text-green-600 dark:text-green-400">
+              ✓ {{ formData.physicianDepartment }}
+            </p>
           </div>
 
           <div>
@@ -229,7 +251,7 @@
                   v-model="item.estimatedCost"
                   type="text"
                   class="form-input"
-                  placeholder="Surgery package"
+                  placeholder="24.000 USD"
                   required
                 />
               </div>
@@ -462,6 +484,7 @@ const router = useRouter();
 const proformaStore = useProformaStore();
 const { hospitals, fetchHospitals } = useHospitals()
 const { fetchDoctors } = useDoctors()
+const { branches, fetchBranches } = useBranches()
 
 const loading = ref(false);
 const showPreview = ref(false);
@@ -476,6 +499,9 @@ const hospitalDoctors = ref([])
 const showDoctorDropdown = ref(false)
 const hospitalId = ref(null)
 
+const branchSearch = ref('')
+const showBranchDropdown = ref(false)
+
 const isEditMode = computed(() => !!route.params.id);
 
 const formData = ref({
@@ -484,8 +510,11 @@ const formData = ref({
   
   // General Information
   patientName: '',
-  hospital: 'Liv Hospital Vadistanbul',
+  hospitalId: null,
+  hospital: '',
+  doctorId: null,
   physicianName: '',
+  branchId: null,
   physicianDepartment: '',
   age: '',
   country: '',
@@ -520,13 +549,36 @@ const formData = ref({
 onMounted(async () => {
   if (isEditMode.value) {
     loading.value = true;
-    const proforma = await proformaStore.fetchProforma(Number(route.params.id));
+    const proforma = await proformaStore.fetchProforma(Number(route.params.id)) as any;
     if (proforma) {
       Object.assign(formData.value, proforma);
+      
+      // Restore search fields for display
+      if (proforma.hospital) {
+        hospitalSearch.value = proforma.hospital;
+        hospitalId.value = proforma.hospitalId;
+      }
+      if (proforma.physicianName) {
+        doctorSearch.value = proforma.physicianName;
+      }
+      if (proforma.physicianDepartment) {
+        branchSearch.value = proforma.physicianDepartment;
+      }
       
       // Convert servicesIncluded array to text
       if (proforma.servicesIncluded && Array.isArray(proforma.servicesIncluded)) {
         servicesText.value = proforma.servicesIncluded.join('\n');
+      }
+      
+      // Load doctors if hospital is selected
+      if (proforma.hospitalId) {
+        try {
+          const $api = useApi()
+          const response = await $api(`/hospitals/${proforma.hospitalId}/doctors`) as any
+          hospitalDoctors.value = Array.isArray(response) ? response : (response.data || [])
+        } catch (err) {
+          console.error('Failed to fetch hospital doctors:', err)
+        }
       }
     }
     loading.value = false;
@@ -536,6 +588,7 @@ onMounted(async () => {
     await Promise.all([
       fetchHospitals({ limit: 1000 }),
       fetchDoctors({ limit: 1000 }),
+      fetchBranches({ limit: 1000 }),
     ])
   } catch (err) {
     console.error('Failed to initialize form:', err)
@@ -544,6 +597,7 @@ onMounted(async () => {
 
 const selectDoctor = (doctor:any) => {
   formData.value.doctorId = doctor.id
+  formData.value.physicianName = doctor.name  // ✅ Otomatik doldur
   doctorSearch.value = doctor.name
   showDoctorDropdown.value = false
 }
@@ -588,11 +642,38 @@ const filteredHospitals = computed(() => {
   )
 })
 
+const hideBranchDropdown = () => {
+  setTimeout(() => {
+    showBranchDropdown.value = false
+  }, 200)
+}
+
+const showBranchDropdownList = () => {
+  showBranchDropdown.value = true
+}
+
+const filteredBranch = computed(() => branches.value)
+
+const filteredBranchForSearch = computed(() => {
+  const baseBranch = filteredBranch.value
+
+  if (!branchSearch.value) {
+    return baseBranch
+  }
+
+  const search = branchSearch.value.toLowerCase()
+  return baseBranch.filter(branch =>
+    branch.name.toLowerCase().includes(search)
+  )
+})
+
 const selectHospital = async (hospital:any) => {
-  formData.value.hospital = hospital.name
+  formData.value.hospitalId = hospital.id
+  formData.value.hospital = hospital.name  // ✅ Otomatik doldur
   hospitalId.value = hospital.id
   hospitalSearch.value = hospital.name
   showHospitalDropdown.value = false
+  
   // Fetch doctors for the selected hospital
   try {
     const $api = useApi()
@@ -605,15 +686,14 @@ const selectHospital = async (hospital:any) => {
   }
 }
 
-
 const removeTreatmentItem = (index: number) => {
   formData.value.treatmentItems.splice(index, 1);
 };
 
 const handleSave = async () => {
-  // Validation
-  if (!formData.value.hospital) {
-    alert('Hospital adı zorunludur');
+  // Validation - Artık opsiyonel olduğu için hospital kontrolü kaldırıldı
+  if (!formData.value.patientName || formData.value.patientName.trim() === '') {
+    alert('Hasta adı zorunludur');
     return;
   }
 
@@ -660,7 +740,6 @@ const handleCancel = () => {
   }
 };
 
-
 const hideHospitalDropdown = () => {
   setTimeout(() => {
     showHospitalDropdown.value = false
@@ -673,7 +752,12 @@ const hideDoctorDropdown = () => {
   }, 200)
 }
 
-
+const selectBranch = (item: any) => {
+  formData.value.branchId = item.id
+  formData.value.physicianDepartment = item.name  // ✅ Otomatik doldur
+  branchSearch.value = item.name
+  showBranchDropdown.value = false 
+}
  
 </script>
 

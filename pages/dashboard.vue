@@ -439,10 +439,10 @@
     </div>
 
     <!-- Bottom Grid - Recent & Reminders -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-8">
       
       <!-- Recent Customers -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden lg:col-span-3">
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
@@ -506,7 +506,7 @@
       </div>
 
       <!-- Upcoming Reminders -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden  lg:col-span-3">
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
@@ -563,10 +563,9 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Upcoming Meetings -->
-    <div v-if="canViewMeetings" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+       <!-- Upcoming Meetings -->
+    <div v-if="canViewMeetings" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden  lg:col-span-6">
       <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="h-9 w-9 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
@@ -594,9 +593,9 @@
             <thead>
               <tr class="border-b border-gray-100 dark:border-gray-700">
                 <th class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider py-3 px-4">Müşteri</th>
+                <th class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider py-3 px-4">Hastane</th>
                 <th class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider py-3 px-4">Başlangıç</th>
                 <th class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider py-3 px-4">Bitiş</th>
-                <th class="text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider py-3 px-4">Durum</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -605,9 +604,32 @@
                 :key="meeting.id"
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
+              
+
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="relative">
+                      <div 
+                        class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold shadow-sm bg-gradient-to-br from-indigo-400 to-purple-600 text-white" 
+                      >
+                        {{ meeting.customerData?.name.charAt(0).toUpperCase() }}
+                      </div>
+                    </div>
+                    <div>
+                      <NuxtLink 
+                        :to="`/customers/show/${meeting.customerData?.id}`"
+                        class="font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                      >
+                        {{ meeting.customerData?.name }}
+                      </NuxtLink>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ meeting.customerData?.id }}</p>
+                    </div>
+                  </div>
+                </td>
+
                 <td class="py-3 px-4">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ meeting.customerInfo?.name || '-' }} {{ meeting.customerInfo?.surname || '' }}
+                    {{ meeting.hospital?.name || '-' }}
                   </p>
                 </td>
                 <td class="py-3 px-4">
@@ -618,7 +640,7 @@
                 </td>
                 <td class="py-3 px-4">
                   <span class="inline-flex px-2.5 py-1 text-xs font-semibold rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300">
-                    {{ meeting.meetingStatusInfo?.name || 'Belirsiz' }}
+                    {{ meeting.meetingStatus?.name || 'Belirsiz' }}
                   </span>
                 </td>
               </tr>
@@ -633,8 +655,12 @@
           </div>
           <p class="text-sm text-gray-500 dark:text-gray-400">Yaklaşan randevu yok</p>
         </div>
+
       </div>
     </div>
+    </div>
+
+   
   </div>
 </template>
 
@@ -733,7 +759,6 @@ const totalDynamicSearch = computed(() => todayAssignments.value.reduce((sum: an
 const totalOldData = computed(() => todayAssignments.value.reduce((sum: any, a: any) => sum + a.oldDataCount, 0))
 
 // Permissions
-const canAddCustomer = computed(() => isAdmin.value || isUser.value)
 const canViewSales = computed(() => isAdmin.value || isUser.value)
 const canViewMeetings = computed(() => isAdmin.value || isUser.value)
 
@@ -753,7 +778,7 @@ const stats = computed(() => {
       {
         name: 'Toplam Gelir',
         value: loadingStats.value ? '...' : formatStatsValue(totalRevenue.value),
-        description: isAdmin.value ? 'Tüm kayıtlar' : 'Sizin kayıtlarınız',
+        description: isAdmin.value ? 'Tüm satışlar' : 'Sizin satışlarınız',
         icon: CurrencyDollarIcon
       }
     )
@@ -768,6 +793,9 @@ const stats = computed(() => {
 
   return baseStats
 })
+
+console.log('stats', stats);
+
 
 // Helper functions
 const formatDate = (dateString: string | undefined) => {
@@ -810,7 +838,7 @@ const refreshAllData = async () => {
   isRefreshing.value = false
 }
 
-// Data fetching functions (aynı mantık, kısaltılmış)
+// Data fetching functions
 const getRoleBasedFilters = async () => {
   if (isDoctor.value || isPricing.value) {
     try { await fetchStatuses() } catch (error) { console.error('Error fetching statuses:', error) }
@@ -826,51 +854,220 @@ const getRoleBasedFilters = async () => {
   return customerFilters
 }
 
+/**
+ * ✅ YENİ: Admin için CRM Stats (tüm satışlar) - Laravel endpoint
+ */
+const fetchAdminRevenue = async () => {
+  try {
+    const api = useApi()
+    const result = await api('/crm-sales/stats') as any
+    
+    if (result) {
+      return {
+        EUR: result.eurTotalSales || 0,
+        USD: result.usdTotalSales || 0,
+        TRY: result.tryTotalSales || 0
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching admin revenue:', error)
+  }
+  return { EUR: 0, USD: 0, TRY: 0 }
+}
+
+/**
+ * ✅ YENİ: User için Dashboard Stats - NestJS endpoint (user'a özel)
+ * Seçenek 1: /sales/stats/dashboard endpoint'ini kullan
+ */
+const fetchUserRevenueOption1 = async () => {
+  try {
+    const api = useApi()
+    const userId = authStore.user?.id
+    
+    if (!userId) return { EUR: 0, USD: 0, TRY: 0 }
+    
+    // Dashboard stats endpoint'ini kullan
+    const result = await api('/sales/stats/dashboard', { 
+      query: { userId } 
+    }) as any
+
+    if (result?.summary?.totalSalesAllCurrencies) {
+      return result.summary.totalSalesAllCurrencies
+    }
+  } catch (error) {
+    console.error('Error fetching user revenue (option 1):', error)
+  }
+  return { EUR: 0, USD: 0, TRY: 0 }
+}
+
+/**
+ * ✅ YENİ: User için kendi satışları (mixed currency destekli)
+ * Seçenek 2: /sales/user/details endpoint'ini kullan ve frontend'de hesapla
+ */
+const fetchUserRevenueOption2 = async () => {
+  try {
+    const api = useApi()
+    const userId = authStore.user?.id
+    
+    if (!userId) return { EUR: 0, USD: 0, TRY: 0 }
+    
+    // User'ın satışlarını getir
+    const response = await api('/sales/user/details', { 
+      query: { user: userId } 
+    }) as any
+
+    let allSales = Array.isArray(response?.data) ? response.data : []
+    
+    // Boş salesProducts'ı olan satışları filtrele
+    allSales = allSales.filter((sale: any) => 
+      sale.salesProducts && 
+      Array.isArray(sale.salesProducts) && 
+      sale.salesProducts.length > 0
+    )
+
+    const revenue: Record<string, number> = {}
+
+    // Her ürünü kendi currency'si ile hesapla (mixed currency support)
+    allSales.forEach((sale: any) => {
+      sale.salesProducts.forEach((product: any) => {
+        // Currency tespiti (fallback chain)
+        const currency = 
+          product.currency?.code || 
+          product.spCurrency?.code ||
+          product.productDetails?.currency?.code || 
+          'TRY'
+        
+        // Tutar tespiti (totalPrice öncelikli)
+        const amount = product.totalPrice || product.offer || product.price || 0
+        
+        // Currency bazlı toplama
+        revenue[currency] = (revenue[currency] || 0) + amount
+      })
+    })
+
+    return revenue
+  } catch (error) {
+    console.error('Error fetching user revenue (option 2):', error)
+  }
+  return { EUR: 0, USD: 0, TRY: 0 }
+}
+
+/**
+ * ✅ YENİ: Satış sayfasındaki mantığı kullan (currency bazında gruplama)
+ */
+ const fetchRevenue = async () => {
+  try {
+    const api = useApi()
+    const userId = authStore.user?.id
+
+    // ✅ Type-safe query object
+    const query: Record<string, any> = { limit: 1000 }
+    if (!isAdmin.value && userId) {
+      query.user = userId
+    }
+
+    
+    const response = await api('/sales/user/details', { query }) as any
+
+
+    if (!response?.data || response.data.length === 0) {
+      console.warn('⚠️ Hiç satış bulunamadı!')
+      return { EUR: 0, USD: 0, TRY: 0 }
+    }
+
+
+    // Satış sayfasındaki mantık: Currency bazında gruplama
+    const revenueByCurrency: Record<string, number> = {}
+
+    for (const sale of response.data) {
+      // Boş salesProducts kontrolü
+      if (!sale.salesProducts || !Array.isArray(sale.salesProducts) || sale.salesProducts.length === 0) {
+        continue
+      }
+
+      // Her satıştaki ürünleri currency'ye göre grupla
+      const productsByCurrency = new Map<string, any[]>()
+
+      for (const sp of sale.salesProducts) {
+        const currency = 
+          sp.currency?.code || 
+          sp.spCurrency?.code ||
+          sp.productDetails?.currency?.code || 
+          'TRY'
+
+        if (!productsByCurrency.has(currency)) {
+          productsByCurrency.set(currency, [])
+        }
+        productsByCurrency.get(currency)?.push(sp)
+      }
+
+      // Her currency için ayrı hesaplama
+      for (const [currency, products] of productsByCurrency.entries()) {
+        
+        const totalAmount = products.reduce((sum: number, p: any) => {
+          const amount = parseFloat(p.totalPrice) || parseFloat(p.offer) || parseFloat(p.price) || 0
+          return sum + amount
+        }, 0)
+
+        if (!revenueByCurrency[currency]) {
+          revenueByCurrency[currency] = 0
+        }
+        
+        revenueByCurrency[currency] += totalAmount
+
+      }
+    }
+
+    return revenueByCurrency
+
+  } catch (error) {
+    console.error('❌ Error fetching revenue:', error)
+  }
+  return { EUR: 0, USD: 0, TRY: 0 }
+}
+
+/**
+ * ✅ GÜNCEL: Rol bazlı gelir hesaplama
+ */
 const calculateStats = async () => {
   try {
     loadingStats.value = true
     const api = useApi()
-    const filters = getRelatedDataFilters() || {}
-    const response = await api('/sales/user/details', { query: filters }) as any
-
-    let allSales = Array.isArray(response?.data) ? response.data : []
-
-    const calcTotalAmount = (products: any) => {
-      if (!products || !Array.isArray(products)) return 0
-      return products.reduce((sum, p) => sum + (p.totalPrice || p.offer || p.price || 0), 0)
-    }
-
-    const getCurrency = (products: any) => {
-      if (!products || !products.length) return 'TRY'
-      return products[0]?.currency?.code || products[0]?.productDetails?.currency?.code || 'TRY'
-    }
-
-    const revenue: Record<string, number> = {}
-    const revenueMonth: Record<string, number> = {}
-    const now = new Date()
-    const cm = now.getMonth()
-    const cy = now.getFullYear()
-
-    allSales.forEach((sale: any) => {
-      const amount = calcTotalAmount(sale.salesProducts)
-      const currency = getCurrency(sale.salesProducts)
-      revenue[currency] = (revenue[currency] || 0) + amount
-      const d = new Date(sale.createdAt)
-      if (d.getMonth() === cm && d.getFullYear() === cy) {
-        revenueMonth[currency] = (revenueMonth[currency] || 0) + amount
-      }
-    })
- 
     
+    
+    // 1. Gelir Hesaplama (Satış sayfası mantığı ile)
+    totalRevenue.value = await fetchRevenue() as any
+    
+    
+    // 2. Müşteri Sayısı
+    const filters = await getRoleBasedFilters()
+    const customersResponse = await api('/customers', { query: filters }) as any
 
-    totalRevenue.value = revenue as any
-    totalSales.value = revenueMonth as any
+    if (Array.isArray(customersResponse)) {
+      const accessibleCustomers = customersResponse.filter((c: any) => canAccessCustomer(c))
+      totalCustomers.value = accessibleCustomers.length.toString()
+    } else if (customersResponse.data) {
+      const accessibleCustomers = customersResponse.data.filter((c: any) => canAccessCustomer(c))
+      totalCustomers.value = accessibleCustomers.length.toString()
+    }
+    
+    // 3. Randevu Sayısı
+    const meetingFilters = getRelatedDataFilters() || {}
+    const meetingsResponse = await api('/meetings', { query: meetingFilters }) as any
+    
+    if (Array.isArray(meetingsResponse)) {
+      totalMeetings.value = meetingsResponse.length.toString()
+    } else if (meetingsResponse.data) {
+      totalMeetings.value = meetingsResponse.data.length.toString()
+    }
+    
   } catch (err) {
-    console.error('calculateStats error:', err)
+    console.error('❌ calculateStats error:', err)
   } finally {
     loadingStats.value = false
   }
 }
+
 
 const fetchRecentCustomers = async () => {
   try {
@@ -884,7 +1081,6 @@ const fetchRecentCustomers = async () => {
     } else if (customersResponse.data) {
       recentCustomers.value = customersResponse.data.filter((c: any) => canAccessCustomer(c)).slice(0, 5)
     }
-    totalCustomers.value = recentCustomers.value.length
   } catch (error) {
     console.error('Error fetching recent customers:', error)
   } finally {
@@ -904,7 +1100,6 @@ const fetchUpcomingMeetings = async () => {
     } else if (meetingsResponse.data) {
       upcomingMeetings.value = meetingsResponse.data.slice(0, 5)
     }
-    totalMeetings.value = upcomingMeetings.value.length
   } catch (error) {
     console.error('Error fetching upcoming meetings:', error)
   } finally {
@@ -1034,6 +1229,7 @@ const fetchUserMeetingsForCalendar = async () => {
 }
 
 const fetchTodayAssignments = async () => {
+  if (!isAdmin.value) return
   loadingTodayAssignments.value = true
   try {
     const api = useApi()
@@ -1077,4 +1273,4 @@ onMounted(async () => {
 })
 
 useHead({ title: 'Dashboard - Valdori CRM' })
-</script>
+</script> 
