@@ -7,6 +7,16 @@ export interface Doctor {
     name: string
     code: string
     description?: string
+    translations?: Array<{
+      id: number
+      languageId: number
+      name: string
+      language?: {
+        id: number
+        code: string
+        name: string
+      }
+    }>
   }
   doctor2Branches?: Array<{
     id: number
@@ -16,6 +26,16 @@ export interface Doctor {
       id: number
       name: string
       code: string
+      translations?: Array<{
+        id: number
+        languageId: number
+        name: string
+        language?: {
+          id: number
+          code: string
+          name: string
+        }
+      }>
     }
   }>
   doctor2Hospitals?: Array<{
@@ -35,6 +55,16 @@ export interface Doctor {
   updatedAt: Date
 }
 
+export interface DoctorFetchParams {
+  page?: number
+  limit?: number
+  search?: string
+  branchId?: number
+  sortBy?: 'name' | 'createdAt' | 'updatedAt'
+  sortOrder?: 'ASC' | 'DESC'
+  order?: 'ASC' | 'DESC' // Backward compatibility
+}
+
 export const useDoctors = () => {
   const $api = useApi()
   const doctors = ref<Doctor[]>([])
@@ -47,24 +77,36 @@ export const useDoctors = () => {
     total: 0
   })
 
-  const fetchDoctors = async (params?: {
-    page?: number
-    limit?: number
-    search?: string
-    order?: 'ASC' | 'DESC'
-  }) => {
+  const fetchDoctors = async (params?: DoctorFetchParams) => {
     loading.value = true
     error.value = null
     try {
       // Build query parameters
       const queryParams = new URLSearchParams()
+      
+      // Pagination
       queryParams.append('page', (params?.page || 1).toString())
       queryParams.append('limit', (params?.limit || 20).toString())
+      
+      // Search
       if (params?.search) {
         queryParams.append('search', params.search)
       }
-      if (params?.order) {
-        queryParams.append('order', params.order)
+      
+      // Branch filter
+      if (params?.branchId) {
+        queryParams.append('branchId', params.branchId.toString())
+      }
+      
+      // Sorting
+      if (params?.sortBy) {
+        queryParams.append('sortBy', params.sortBy)
+      }
+      
+      // Sort order (handle both sortOrder and order for backward compatibility)
+      const sortOrder = params?.sortOrder || params?.order
+      if (sortOrder) {
+        queryParams.append('sortOrder', sortOrder)
       }
 
       const url = `/doctors?${queryParams.toString()}`
