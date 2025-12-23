@@ -102,6 +102,8 @@
     </div>
 
     <!-- ✅ ADVANCED FILTERS CARD -->
+ 
+    <!-- ✅ ADVANCED FILTERS CARD -->
     <div
       class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
       <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -112,7 +114,7 @@
           </span>
           <span v-if="activeFilterCount > 0"
             class="px-2 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full">
-            {{ activeFilterCount }} aktif
+            {{ tp('customers.filters.active_count', { count: activeFilterCount }, '{count} aktif') }}
           </span>
         </div>
         <button @click="resetFilters"
@@ -155,12 +157,12 @@
           <!-- Source -->
           <div v-if="isAdmin">
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-              Kaynak
+              {{ t('customers.filters.source', 'Kaynak') }}
             </label>
 
             <select v-model="sourceIdFilter"
               class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none cursor-pointer">
-              <option value="">Kaynak seçiniz</option>
+              <option value="">{{ t('customers.filters.select_source', 'Kaynak seçiniz') }}</option>
               <option v-for="source in sources" :key="source.id" :value="source.id">
                 {{ source.name }}
               </option>
@@ -220,7 +222,7 @@
           <!-- Start Date -->
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-              Başlangıç Tarihi
+              {{ t('customers.filters.start_date', 'Başlangıç Tarihi') }}
             </label>
             <input v-model="startDateFilter" type="date"
               class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
@@ -229,7 +231,7 @@
           <!-- End Date -->
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-              Bitiş Tarihi
+              {{ t('customers.filters.end_date', 'Bitiş Tarihi') }}
             </label>
             <input v-model="endDateFilter" type="date"
               class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
@@ -238,24 +240,24 @@
           <!-- Quick Date Filters -->
           <div class="lg:col-span-2">
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-              Hızlı Tarih Seçimi
+              {{ t('customers.filters.quick_date', 'Hızlı Tarih Seçimi') }}
             </label>
             <div class="flex gap-2">
               <button @click="setQuickDateFilter('today')"
                 class="flex-1 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                Bugün
+                {{ t('customers.filters.date.today', 'Bugün') }}
               </button>
               <button @click="setQuickDateFilter('week')"
                 class="flex-1 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                Bu Hafta
+                {{ t('customers.filters.date.week', 'Bu Hafta') }}
               </button>
               <button @click="setQuickDateFilter('month')"
                 class="flex-1 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                Bu Ay
+                {{ t('customers.filters.date.month', 'Bu Ay') }}
               </button>
               <button @click="setQuickDateFilter('year')"
                 class="flex-1 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                Bu Yıl
+                {{ t('customers.filters.date.year', 'Bu Yıl') }}
               </button>
             </div>
           </div>
@@ -264,46 +266,61 @@
         <!-- ✅ Active Filters Display -->
         <div v-if="hasActiveFilters" class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <div class="flex flex-wrap gap-2">
-            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Aktif Filtreler:</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              {{ t('customers.filters.active_filters', 'Aktif Filtreler:') }}
+            </span>
 
             <span v-if="searchTerm" class="filter-badge">
-              Arama: {{ searchTerm }}
+              {{ tp('customers.filters.badge.search', { value: searchTerm }, 'Arama: {value}') }}
               <button @click="searchTerm = ''" class="ml-1">×</button>
             </span>
 
             <span v-if="statusFilter" class="filter-badge">
-              Durum: {{statusOptions.find(s => s.value === statusFilter)?.label}}
+              {{ tp('customers.filters.badge.status', { 
+                value: statusOptions.find(s => s.value === statusFilter)?.label 
+              }, 'Durum: {value}') }}
               <button @click="statusFilter = undefined" class="ml-1">×</button>
             </span>
 
             <span v-if="sourceIdFilter" class="filter-badge">
-              Kaynak: {{ sources.find(a => a.id == sourceIdFilter)?.name }}
+              {{ tp('customers.filters.badge.source', { 
+                value: sources.find(a => a.id == sourceIdFilter)?.name 
+              }, 'Kaynak: {value}') }}
               <button @click="sourceIdFilter = ''" class="ml-1">×</button>
             </span>
- 
 
             <span v-if="relatedTransactionFilter" class="filter-badge">
-              Konu: {{ relatedTransactionFilter }}
+              {{ tp('customers.filters.badge.topic', { 
+                value: relatedTransactionFilter 
+              }, 'Konu: {value}') }}
               <button @click="relatedTransactionFilter = ''" class="ml-1">×</button>
             </span>
 
             <span v-if="checkupPackageFilter" class="filter-badge">
-              Checkup: {{ checkupPackageFilter }}
+              {{ tp('customers.filters.badge.checkup', { 
+                value: checkupPackageFilter 
+              }, 'Checkup: {value}') }}
               <button @click="checkupPackageFilter = ''" class="ml-1">×</button>
             </span>
 
             <span v-if="relevantUserFilter" class="filter-badge">
-              Atanan: {{ relevantUserFilter.name }}
+              {{ tp('customers.filters.badge.assigned', { 
+                value: relevantUserFilter.name 
+              }, 'Atanan: {value}') }}
               <button @click="relevantUserFilter = null" class="ml-1">×</button>
             </span>
 
             <span v-if="startDateFilter" class="filter-badge">
-              Başlangıç: {{ startDateFilter }}
+              {{ tp('customers.filters.badge.start_date', { 
+                value: startDateFilter 
+              }, 'Başlangıç: {value}') }}
               <button @click="startDateFilter = ''" class="ml-1">×</button>
             </span>
 
             <span v-if="endDateFilter" class="filter-badge">
-              Bitiş: {{ endDateFilter }}
+              {{ tp('customers.filters.badge.end_date', { 
+                value: endDateFilter 
+              }, 'Bitiş: {value}') }}
               <button @click="endDateFilter = ''" class="ml-1">×</button>
             </span>
           </div>
