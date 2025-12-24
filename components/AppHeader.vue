@@ -158,7 +158,7 @@ const performQuickSearch = () => {
 }
 
 const navigateToProfile = (customerId) => {
-  router.push(`/customers/${customerId}`)
+  router.push(`/customers/show/${customerId}`)
   showQuickSearch.value = false
   quickSearchQuery.value = ''
   searchResults.value = []
