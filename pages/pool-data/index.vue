@@ -876,8 +876,8 @@ const fetchStats = async () => {
     const api = useApi()
     
     const [unassignedRes, assignedRes] = await Promise.all([
-      api('/customers', { query: { isFirst: true, hasRelevantUser: false, limit: 1 } }),
-      api('/customers', { query: { isFirst: true, hasRelevantUser: true, limit: 1 } })
+      api('/customers', { query: { isFirst: true, hasRelevantUser: false, limit: 20 } }),
+      api('/customers', { query: { isFirst: true, hasRelevantUser: true, limit: 20 } })
     ])
 
     stats.value.unassigned = unassignedRes.meta?.total || 0
