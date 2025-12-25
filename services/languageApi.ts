@@ -1,22 +1,13 @@
 // services/languageApi.ts
-import type { Language, TranslationsResponse, TranslationKey } from '~/types/language';
+import type { Language, TranslationsResponse, TranslationKey, BulkTranslationItem } from '~/types/language';
 
 /**
  * ✅ Get base API URL safely
  */
 const getBaseURL = (): string => {
-  try {
-    if (import.meta.client && typeof useRuntimeConfig === 'function') {
-      const config = useRuntimeConfig();
-      // return config.public.apiBaseUrl as string || 'http://localhost:3001';
-      return config.public.apiBaseUrl as string || 'https://vcrmapi.mlpcare.com';
-    }
-  } catch (e) {
-    // Silent fallback
-  }
 
-  // return 'http://localhost:3001';
-  return 'https://vcrmapi.mlpcare.com';
+  return 'http://localhost:3001';
+  //  return 'https://vcrmapi.mlpcare.com';
 };
 
 /**
@@ -279,14 +270,19 @@ export const languageApi = {
   /**
    * Alias for bulkImportTranslations (for compatibility)
    */
-  async bulkCreateTranslations(data: {
-    items: Array<{
-      keyName: string;
-      description?: string;
-      translations: Record<string, string>;
-    }>;
-  }): Promise<any> {
-    return await this.bulkImportTranslations(data);
+  // languageApi.ts
+
+  async bulkCreateTranslations(items: BulkTranslationItem[]): Promise<any> {
+    // ✅ items array'ini wrapper'a sar
+    const payload = { items }
+
+    console.log('📤 API Payload:', JSON.stringify(payload, null, 2))
+    console.log('📤 Is array?', Array.isArray(items))
+
+    return await safeFetch('/languages/translations/bulk', {
+      method: 'POST',
+      body: payload,
+    })
   },
 
   /**

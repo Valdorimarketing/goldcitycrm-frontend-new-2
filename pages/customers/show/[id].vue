@@ -11,7 +11,8 @@
           {{ t('customers.title', 'Müşteriler') }}
         </NuxtLink>
         <ChevronRightIcon class="h-4 w-4 text-gray-400" />
-        <span class="text-gray-900 dark:text-white font-medium">{{ customer?.name || t('customer_show.customer', 'Müşteri') }}</span>
+        <span class="text-gray-900 dark:text-white font-medium">{{ customer?.name || t('customer_show.customer',
+          'Müşteri') }}</span>
       </nav>
 
       <!-- Loading State -->
@@ -97,7 +98,8 @@
                 ]">
                   <span class="w-1.5 h-1.5 rounded-full"
                     :class="customer.isActive ? 'bg-emerald-500' : 'bg-red-500'"></span>
-                  {{ customer.isActive ? t('customer_show.status.active', 'Aktif') : t('customer_show.status.inactive', 'Pasif') }}
+                  {{ customer.isActive ? t('customer_show.status.active', 'Aktif') : t('customer_show.status.inactive',
+                  'Pasif') }}
                 </span>
                 <span v-if="customerStatus"
                   class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
@@ -127,14 +129,16 @@
                 <div
                   class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-3 text-center">
                   <ClockIcon class="h-5 w-5 text-indigo-600 dark:text-indigo-400 mx-auto mb-1" />
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.quick_stats.created', 'Kayıt') }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.quick_stats.created', 'Kayıt')
+                    }}</p>
                   <p class="text-xs font-medium text-gray-900 dark:text-white">{{ formatShortDate(customer.createdAt) }}
                   </p>
                 </div>
                 <div
                   class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-3 text-center">
                   <ArrowPathIcon class="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.quick_stats.updated', 'Güncelleme') }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.quick_stats.updated',
+                    'Güncelleme') }}</p>
                   <p class="text-xs font-medium text-gray-900 dark:text-white">{{ formatShortDate(customer.updatesAt) }}
                   </p>
                 </div>
@@ -157,7 +161,8 @@
                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {{ customer.relevantUserData.name }}
                     </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.contact.health_advisor', 'Sağlık Danışmanı') }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('customer_show.contact.health_advisor',
+                      'Sağlık Danışmanı') }}</p>
                   </div>
                 </div>
 
@@ -184,9 +189,10 @@
                         <ClipboardDocumentCheckIcon v-else class="h-6 w-6 text-green-600" />
                       </button>
 
-                      <!-- WhatsApp butonu -->
-                      <a :href="`https://wa.me/${formatPhoneForWhatsApp(customer.phone)}`" target="_blank"
-                        class="text-green-600 hover:text-green-700" :title="t('customer_show.contact.open_whatsapp', 'WhatsApp\'ta aç')">
+                      <!-- WhatsApp butonu - Sadece telefon varsa göster -->
+                      <a v-if="customer.phone" :href="`https://wa.me/${formatPhoneForWhatsApp(customer.phone)}`"
+                        target="_blank" class="text-green-600 hover:text-green-700"
+                        :title="t('customer_show.contact.open_whatsapp', 'WhatsApp\'ta aç')">
                         <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                           <path
                             d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -207,7 +213,8 @@
                       {{ formattedEngagementTime }}
                     </p>
                     <p class="text-xs text-indigo-500 dark:text-indigo-300">
-                      {{ activeEngagement.role === 'SALES' ? t('customer_show.engagement.sales', 'Satış Görüşmesi') : t('customer_show.engagement.doctor', 'Doktor Görüşmesi') }}
+                      {{ activeEngagement.role === 'SALES' ? t('customer_show.engagement.sales', 'Satış Görüşmesi') :
+                        t('customer_show.engagement.doctor', 'Doktor Görüşmesi') }}
                     </p>
                   </div>
                 </div>
@@ -223,6 +230,7 @@
                     {{ customer.email }}
                   </a>
                 </div>
+ 
 
                 <!-- Gender -->
                 <div v-if="customer.gender"
@@ -272,8 +280,7 @@
                 <div v-if="customer.message" class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                   <div class="flex items-center gap-2 mb-2">
                     <ChatBubbleLeftIcon class="h-4 w-4 text-gray-400" />
-                    <span
-                      class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       {{ t('customer_show.message', 'Mesaj') }}
                     </span>
                   </div>
@@ -327,6 +334,14 @@
                   <ArrowLeftIcon class="h-4 w-4" />
                   {{ t('customer_show.go_back', 'Geri Dön') }}
                 </button>
+
+                  <NuxtLink :to="`/customers/detail/${customer.id}`" 
+                   class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all text-sm font-medium shadow-lg shadow-indigo-500/25">
+                    <MagnifyingGlassIcon class="h-4 w-4" />
+                   {{ t('customer.view_details', 'Detaylı Görünüm') }}
+                </NuxtLink>
+
+
               </div>
 
               <!-- Source & Additional Info -->
@@ -342,7 +357,8 @@
                 </div>
 
                 <div v-if="customer.description" class="mt-3">
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ t('customer_show.description', 'Açıklama') }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">{{ t('customer_show.description', 'Açıklama')
+                    }}</p>
                   <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
                     {{ customer.description }}
                   </p>
@@ -371,7 +387,8 @@
                       <ClockIcon class="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 class="text-lg font-bold text-white">{{ t('customer_show.history.title', 'Müşteri Geçmişi') }}</h3>
+                      <h3 class="text-lg font-bold text-white">{{ t('customer_show.history.title', 'Müşteri Geçmişi') }}
+                      </h3>
                       <p class="text-sm text-blue-100">{{ t('customer_show.history.subtitle', 'Tüm aktiviteler ve değişiklikler') }}</p>
                     </div>
                   </div>
@@ -424,7 +441,9 @@
                                 class="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                                 <DocumentTextIcon class="h-4 w-4 text-amber-600 dark:text-amber-400" />
                               </div>
-                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('pool.actions.notes', 'Notlar') }}</span>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                                t('pool.actions.notes',
+                                'Notlar') }}</span>
                             </button>
                             <button @click="handleDropdownAction(showDoctorAssignment)"
                               class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -432,7 +451,8 @@
                                 class="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                                 <UserIcon class="h-4 w-4 text-purple-600 dark:text-purple-400" />
                               </div>
-                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('customer_show.dropdown.doctor_opinion', 'Doktor Görüşü') }}</span>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                                t('customer_show.dropdown.doctor_opinion', 'Doktor Görüşü') }}</span>
                             </button>
                             <button @click="handleDropdownAction(showServices)"
                               class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -440,7 +460,9 @@
                                 class="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                                 <ShoppingBagIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                               </div>
-                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('pool.actions.services', 'Hizmetler') }}</span>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                                t('pool.actions.services',
+                                'Hizmetler') }}</span>
                             </button>
                             <button @click="handleDropdownAction(showFiles)"
                               class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -448,7 +470,9 @@
                                 class="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
                                 <FolderIcon class="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                               </div>
-                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('pool.actions.files', 'Dosyalar') }}</span>
+                              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                                t('pool.actions.files',
+                                'Dosyalar') }}</span>
                             </button>
                             <div v-if="!isDoctor" class="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
                               <button
@@ -458,7 +482,9 @@
                                   class="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                                   <PencilIcon class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                 </div>
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('pool.actions.edit', 'Düzenle') }}</span>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{
+                                  t('pool.actions.edit',
+                                  'Düzenle') }}</span>
                               </button>
                             </div>
                           </div>
@@ -507,21 +533,26 @@
                             leave-from-class="opacity-100 max-h-96" leave-to-class="opacity-0 max-h-0">
                             <div v-if="showStates[item.id]" class="mt-3 space-y-2 overflow-hidden">
                               <div v-if="item.requestData" class="bg-white dark:bg-gray-800 rounded-lg p-3">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ t('customer_show.history.request_data', 'İstek Verisi') }}</p>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{
+                                  t('customer_show.history.request_data', 'İstek Verisi') }}</p>
                                 <pre
-                                  class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">{{ item.requestData }}</pre>
+                                  class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">
+                          {{ item.requestData }}</pre>
                               </div>
                               <div v-if="item.responseData" class="bg-white dark:bg-gray-800 rounded-lg p-3">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ t('customer_show.history.response_data', 'Yanıt Verisi') }}</p>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{
+                                  t('customer_show.history.response_data', 'Yanıt Verisi') }}</p>
                                 <pre
-                                  class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">{{ item.responseData }}</pre>
+                                  class="text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap break-words">
+                          {{ item.responseData }}</pre>
                               </div>
                             </div>
                           </Transition>
 
                           <button v-if="item.requestData || item.responseData" @click="toggleShow(item.id)"
                             class="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                            {{ showStates[item.id] ? t('customer_show.history.hide', 'Gizle') : t('customer_show.history.show_details', 'Detayları Göster') }}
+                            {{ showStates[item.id] ? t('customer_show.history.hide', 'Gizle') :
+                              t('customer_show.history.show_details', 'Detayları Göster') }}
                           </button>
                         </div>
 
@@ -554,7 +585,9 @@
                 <div class="h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
                   <ClockIcon class="h-8 w-8 text-gray-400" />
                 </div>
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">{{ t('customer_show.history.empty.title', 'Geçmiş Bulunamadı') }}</h3>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">{{
+                  t('customer_show.history.empty.title',
+                  'Geçmiş Bulunamadı') }}</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
                   {{ t('customer_show.history.empty.description', 'Bu müşteri için henüz geçmiş kaydı bulunmuyor.') }}
                 </p>
@@ -565,7 +598,8 @@
             <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
               <div class="flex items-center justify-between">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('dashboard.total', 'Toplam') }} <span class="font-semibold text-gray-900 dark:text-white">{{ history.length }}</span> {{ t('customer_show.history.records', 'kayıt') }}
+                  {{ t('dashboard.total', 'Toplam') }} <span class="font-semibold text-gray-900 dark:text-white">{{
+                    history.length }}</span> {{ t('customer_show.history.records', 'kayıt') }}
                 </p>
                 <div class="flex items-center gap-2 text-xs text-gray-400">
                   <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -618,9 +652,9 @@ import {
   CheckIcon,
   BellAlertIcon,
   ChatBubbleLeftIcon,
-  ClipboardIcon,
   ClipboardDocumentCheckIcon,
-  ClipboardDocumentIcon
+  ClipboardDocumentIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/vue/24/outline'
 import { useLanguage } from '~/composables/useLanguage'
 
@@ -730,8 +764,10 @@ const formatDate = (dateString) => {
 }
 
 const formatPhoneForWhatsApp = (phone) => {
+  if (!phone) return '' // ✅ Null/undefined kontrolü
   return phone.replace(/[\s\-\(\)\+]/g, '')
 }
+
 
 const formatShortDate = (dateString) => {
   if (!dateString) return '-'
@@ -744,7 +780,7 @@ const formatShortDate = (dateString) => {
 
 const getRemainingTime = (remindingDate) => {
   if (!remindingDate) return ''
-  
+
   const now = new Date()
   const target = new Date(remindingDate)
   const diff = target.getTime() - now.getTime()
@@ -753,7 +789,7 @@ const getRemainingTime = (remindingDate) => {
     // Geçmiş zamanlar
     const hours = Math.floor(Math.abs(diff) / (1000 * 60 * 60))
     const days = Math.floor(hours / 24)
-    
+
     if (days > 0) {
       return tp('reminders.time.days_overdue', { days }, '{days} gün gecikmiş')
     }
@@ -766,7 +802,7 @@ const getRemainingTime = (remindingDate) => {
   // Gelecek zamanlar
   const hours = Math.floor(diff / (1000 * 60 * 60))
   const days = Math.floor(hours / 24)
-  
+
   if (days > 0) {
     return tp('reminders.time.days_left', { days }, '{days} gün kaldı')
   }
@@ -801,10 +837,10 @@ const formatBirthDate = (dateString) => {
 }
 
 const getGenderText = (gender) => {
-  const genders = { 
-    'male': t('customer_show.gender.male', 'Erkek'), 
-    'female': t('customer_show.gender.female', 'Kadın'), 
-    'other': t('customer_show.gender.other', 'Diğer') 
+  const genders = {
+    'male': t('customer_show.gender.male', 'Erkek'),
+    'female': t('customer_show.gender.female', 'Kadın'),
+    'other': t('customer_show.gender.other', 'Diğer')
   }
   return genders[gender] || gender
 }
@@ -999,7 +1035,7 @@ const handleClickOutside = (event) => {
   if (!dropdown && showActionsDropdown.value) showActionsDropdown.value = false
 }
 
- 
+
 
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
