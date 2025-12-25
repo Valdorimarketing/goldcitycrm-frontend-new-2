@@ -6,10 +6,10 @@ import type { Language, TranslationsResponse, TranslationKey, BulkTranslationIte
  */
 const getBaseURL = (): string => {
 
-  return 'http://localhost:3001';
-  //  return 'https://vcrmapi.mlpcare.com';
+  // return 'http://localhost:3001';
+    return 'https://vcrmapi.mlpcare.com';
 };
-
+ 
 /**
  * ✅ Safe API fetch with SSL bypass for development
  */
