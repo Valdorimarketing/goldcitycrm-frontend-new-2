@@ -16,10 +16,6 @@
           {{ t('proforma.button_cancel') }}
         </button>
 
-        <button @click="handlePreview" class="btn-secondary" v-if="isEditMode && canDownload">
-          <EyeIcon class="w-5 h-5 mr-2" />
-          {{ t('proforma.button_preview') }}
-        </button>
 
         <button @click="handleSave" class="btn-primary" :disabled="loading">
           <CheckIcon v-if="!loading" class="w-5 h-5 mr-2" />
@@ -38,7 +34,7 @@
           <h2 class="section-title">{{ t('proforma.section_basic_info') }}</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <label class="form-label">{{ t('proforma.label_date') }} *</label>
             <input v-model="formData.date" type="date" class="form-input" required />
@@ -61,6 +57,16 @@
               </option>
             </select>
           </div>
+
+          <div>
+            <label class="form-label">{{ t('proforma.label_choose_template', 'Template Tipi') }} *</label>
+            <select v-model="formData.templateType" class="form-select">
+              <option v-for="temp in availableTemplates" :key="temp.type" :value="temp.type">
+                {{ temp.name }}
+              </option>
+            </select>
+          </div>
+
         </div>
       </div>
 
@@ -180,6 +186,9 @@
       </div>
 
       <!-- TREATMENT DETAILS Section -->
+
+
+
       <div class="form-section">
         <div class="section-header">
           <div class="flex justify-between items-center">
@@ -210,7 +219,58 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- ✅ SADECE İstinye-Blue için özel layout -->
+            <div v-if="formData.templateType === 'istinye-blue'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- İstinye Blue: Unit Price, Quantity, Total yapısı -->
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_procedure') }} *</label>
+                <input v-model="item.procedure" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_procedure')" required />
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_visit_type') }} *</label>
+                <input v-model="item.visitType" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_visit_type')" required />
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_unit_price', 'Birim Fiyat') }} *</label>
+                <div class="relative">
+                  <input v-model="item.estimatedCost" type="text" class="form-input pr-16" placeholder="750.00"
+                    @input="handleEstimatedCostChange(Number(index))" required />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                    {{ formData.currency }}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_quantity', 'Adet') }} *</label>
+                <input v-model.number="item.quantity" type="number" min="1" step="1" class="form-input" placeholder="1"
+                  @input="handleEstimatedCostChange(Number(index))" required />
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_total', 'Toplam') }}</label>
+                <div class="relative">
+                  <input :value="calculateItemTotal(item)" type="text"
+                    class="form-input pr-16 bg-gray-100 dark:bg-gray-900" readonly />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                    {{ formData.currency }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_notes') }}</label>
+                <input v-model="item.notes" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_notes')" />
+              </div>
+            </div>
+
+            <!-- ✅ Liv-Blue ve Medical-Red için standart layout (quantity YOK) -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="form-label">{{ t('proforma.label_procedure') }} *</label>
                 <input v-model="item.procedure" type="text" class="form-input"
@@ -429,22 +489,7 @@
       </div>
     </div>
 
-    <!-- Preview Modal -->
-    <div v-if="showPreview" class="modal-overlay" @click="showPreview = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3 class="text-lg font-bold">{{ t('proforma.modal_preview_title') }}</h3>
-          <button @click="showPreview = false" class="text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <iframe v-if="previewUrl" :src="previewUrl" class="w-full h-full border-0"></iframe>
-        </div>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -471,8 +516,7 @@ const { t, currentLanguage, currentLanguageInfo, availableLanguages, setLanguage
 const $api = useApi()
 
 const loading = ref(false);
-const showPreview = ref(false);
-const previewUrl = ref('');
+
 const bankFieldsUnlocked = ref(false);
 const servicesText = ref('');
 const manualGrandTotal = ref(false);
@@ -512,6 +556,7 @@ const formData = ref({
   date: new Date().toISOString().split('T')[0],
   currency: 'USD',
   language: currentLanguage.value,
+  templateType: 'liv-blue',
 
   // General Information
   patientName: '',
@@ -554,6 +599,17 @@ const formData = ref({
   approvedAt: null,
 }) as any;
 
+const templateTypes = ref([
+  { type: 'liv-blue', name: 'Liv - Mavi' },
+  { type: 'medical-red', name: 'Medikal - Kırmızı' },
+  { type: 'istinye-blue', name: 'İstinye Dental - Mavi' },
+])
+
+const availableTemplates = computed(() => {
+  return templateTypes.value
+});
+
+
 // ✅ Helper Functions
 const formatCurrency = (amount: number, currency: string): string => {
   const symbols: Record<string, string> = {
@@ -579,13 +635,23 @@ const formatDate = (dateString: string | Date): string => {
   })
 }
 
+
+
 // Calculated Grand Total
 const calculatedTotal = computed(() => {
   return formData.value.treatmentItems.reduce((sum: number, item: any) => {
-    const cost = parseEstimatedCost(item.estimatedCost)
-    return sum + cost
-  }, 0)
-})
+    const unitPrice = parseEstimatedCost(item.estimatedCost);
+
+    // ✅ Sadece istinye-blue'da quantity kullan
+    if (formData.value.templateType === 'istinye-blue') {
+      const quantity = item.quantity || 1;
+      return sum + (unitPrice * quantity);
+    } else {
+      // Liv-blue ve medical-red için direkt cost
+      return sum + unitPrice;
+    }
+  }, 0);
+});
 
 const parseEstimatedCost = (costString: string): number => {
   if (!costString) return 0
@@ -718,19 +784,30 @@ onMounted(async () => {
       if (proforma.hospital) {
         hospitalSearch.value = proforma.hospital;
         hospitalId.value = proforma.hospitalId;
-
-        // ✅ IBAN'ı güncelle (edit mode'da hastane varsa)
         updateBankInfo()
       }
+      
       if (proforma.physicianName) {
         doctorSearch.value = proforma.physicianName;
       }
+      
       if (proforma.physicianDepartment) {
         branchSearch.value = proforma.physicianDepartment;
       }
 
       if (proforma.servicesIncluded && Array.isArray(proforma.servicesIncluded)) {
         servicesText.value = proforma.servicesIncluded.join('\n');
+      }
+
+      // ✅ YENİ: İstinye-blue template'i için quantity field'ı ekle
+      if (formData.value.templateType === 'istinye-blue' && formData.value.treatmentItems) {
+        formData.value.treatmentItems = formData.value.treatmentItems.map((item: any) => {
+          // Eğer quantity yoksa, default olarak 1 ekle
+          if (!item.quantity || item.quantity === undefined) {
+            return { ...item, quantity: 1 };
+          }
+          return item;
+        });
       }
 
       if (proforma.hospitalId) {
@@ -744,7 +821,7 @@ onMounted(async () => {
     }
     loading.value = false;
   } else {
-    // ✅ Yeni proforma oluşturulurken default olarak LİV VADİ bilgilerini set et
+    // Yeni proforma oluşturulurken default olarak LİV VADİ bilgilerini set et
     updateBankInfo()
   }
 
@@ -958,12 +1035,31 @@ const hideBranchDropdown = () => {
 }
 
 const addTreatmentItem = () => {
-  formData.value.treatmentItems.push({
+  const newItem: any = {
     id: `temp-${Date.now()}`,
     procedure: '',
-    visitType: '',
+    visitType: '', // ✅ Tüm template'lerde var
     estimatedCost: 0,
     notes: '',
+  };
+
+  // ✅ SADECE istinye-blue için quantity ekle
+  if (formData.value.templateType === 'istinye-blue') {
+    newItem.quantity = 1; // Default quantity
+  }
+
+  formData.value.treatmentItems.push(newItem);
+};
+
+// ✅ Item total hesaplama (sadece istinye-blue için kullanılacak):
+const calculateItemTotal = (item: any): string => {
+  const unitPrice = parseEstimatedCost(item.estimatedCost);
+  const quantity = item.quantity || 1;
+  const total = unitPrice * quantity;
+
+  return total.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 };
 
@@ -1022,19 +1118,7 @@ const handleCancel = () => {
   }
 };
 
-const handlePreview = async () => {
-  if (isEditMode.value) {
-    if (!canDownload.value) {
-      alert('Bu proformayı görüntüleme yetkiniz yok. Lütfen onay bekleyin.');
-      return;
-    }
 
-    previewUrl.value = `https://vcrmapi.mlpcare.com/proformas/${route.params.id}/preview`;
-    showPreview.value = true;
-  } else {
-    alert(t('proforma.alert_preview_save_first'));
-  }
-};
 
 const handleApproveDownload = async () => {
   if (!confirm('Bu proforma için indirme iznini onaylamak istediğinizden emin misiniz?')) {

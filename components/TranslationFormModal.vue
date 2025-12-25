@@ -137,26 +137,31 @@ watch(() => props.show, (show) => {
   }
 })
 
+
 const handleSubmit = async () => {
   saving.value = true
   try {
     if (isEditMode.value) {
-      // Update existing translation
-      // translation.id aslında translationKeyId'dir
-      await languageApi.updateTranslation(props.languageId, props.translation.id, form.value)
+  // ✅ DOĞRU - Object gönder
+      await languageApi.updateTranslation(
+        props.languageId, 
+        props.translation.id, 
+        { value: form.value, description: form.description } // ✅ Object olarak gönder
+      )
       useToast().showSuccess('Çeviri başarıyla güncellendi')
     } else {
-      // Create new translation key and value
+      // ✅ Sadece items array'i gönder
       const items = [
         {
           keyName: form.key,
-          description: form.description,
+          description: form.description || undefined,
           translations: {
-            [props.languageCode]: form.value,
-          },
-        },
+            [props.languageCode]: form.value
+          }
+        }
       ]
-      await languageApi.bulkCreateTranslations(items)
+      
+      await languageApi.bulkCreateTranslations(items) // ✅ Array gönder
       useToast().showSuccess('Çeviri başarıyla eklendi')
     }
     
@@ -171,4 +176,6 @@ const handleSubmit = async () => {
     saving.value = false
   }
 }
+
+
 </script>

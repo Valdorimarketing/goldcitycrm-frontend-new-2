@@ -38,7 +38,7 @@
           <h2 class="section-title">{{ t('proforma.section_basic_info') }}</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <label class="form-label">{{ t('proforma.label_date') }} *</label>
             <input v-model="formData.date" type="date" class="form-input" required />
@@ -61,6 +61,18 @@
               </option>
             </select>
           </div>
+
+          <div>
+            <label class="form-label">{{ t('proforma.label_choose_template', 'Template Tipi') }} *</label>
+            <select v-model="formData.templateType" class="form-select">
+              <option v-for="temp in availableTemplates" :key="temp.type" :value="temp.type">
+                {{ temp.name }}
+              </option>
+            </select>
+          </div>
+
+
+
         </div>
       </div>
 
@@ -198,6 +210,8 @@
         </div>
 
         <div class="treatment-items-container">
+
+
           <div v-for="(item, index) in formData.treatmentItems" :key="item.id || index" class="treatment-item-card">
             <div class="flex justify-between items-start mb-4">
               <h3 class="font-medium text-gray-900 dark:text-white">
@@ -210,7 +224,58 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- ✅ SADECE İstinye-Blue için özel layout -->
+            <div v-if="formData.templateType === 'istinye-blue'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- İstinye Blue: Unit Price, Quantity, Total yapısı -->
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_procedure') }} *</label>
+                <input v-model="item.procedure" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_procedure')" required />
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_visit_type') }} *</label>
+                <input v-model="item.visitType" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_visit_type')" required />
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_unit_price', 'Birim Fiyat') }} *</label>
+                <div class="relative">
+                  <input v-model="item.estimatedCost" type="text" class="form-input pr-16" placeholder="750.00"
+                    @input="handleEstimatedCostChange(Number(index))" required />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                    {{ formData.currency }}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_quantity', 'Adet') }} *</label>
+                <input v-model.number="item.quantity" type="number" min="1" step="1" class="form-input" placeholder="1"
+                  @input="handleEstimatedCostChange(Number(index))" required />
+              </div>
+
+              <div>
+                <label class="form-label">{{ t('proforma.label_total', 'Toplam') }}</label>
+                <div class="relative">
+                  <input :value="calculateItemTotal(item)" type="text"
+                    class="form-input pr-16 bg-gray-100 dark:bg-gray-900" readonly />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+                    {{ formData.currency }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="form-label">{{ t('proforma.label_notes') }}</label>
+                <input v-model="item.notes" type="text" class="form-input"
+                  :placeholder="t('proforma.placeholder_notes')" />
+              </div>
+            </div>
+
+            <!-- ✅ Liv-Blue ve Medical-Red için standart layout (quantity YOK) -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="form-label">{{ t('proforma.label_procedure') }} *</label>
                 <input v-model="item.procedure" type="text" class="form-input"
@@ -512,6 +577,7 @@ const formData = ref({
   date: new Date().toISOString().split('T')[0],
   currency: 'USD',
   language: currentLanguage.value,
+  templateType: 'liv-blue',
 
   // General Information
   patientName: '',
@@ -554,6 +620,18 @@ const formData = ref({
   approvedAt: null,
 }) as any;
 
+const templateTypes = ref([
+  { type: 'liv-blue', name: 'Liv - Mavi' },
+  { type: 'medical-red', name: 'Medikal - Kırmızı' },
+  { type: 'istinye-blue', name: 'İstinye Dental - Mavi' },
+])
+
+const availableTemplates = computed(() => {
+  return templateTypes.value
+});
+
+
+
 // ✅ Helper Functions
 const formatCurrency = (amount: number, currency: string): string => {
   const symbols: Record<string, string> = {
@@ -582,10 +660,18 @@ const formatDate = (dateString: string | Date): string => {
 // Calculated Grand Total
 const calculatedTotal = computed(() => {
   return formData.value.treatmentItems.reduce((sum: number, item: any) => {
-    const cost = parseEstimatedCost(item.estimatedCost)
-    return sum + cost
-  }, 0)
-})
+    const unitPrice = parseEstimatedCost(item.estimatedCost);
+    
+    // ✅ Sadece istinye-blue'da quantity kullan
+    if (formData.value.templateType === 'istinye-blue') {
+      const quantity = item.quantity || 1;
+      return sum + (unitPrice * quantity);
+    } else {
+      // Liv-blue ve medical-red için direkt cost
+      return sum + unitPrice;
+    }
+  }, 0);
+});
 
 const parseEstimatedCost = (costString: string): number => {
   if (!costString) return 0
@@ -958,12 +1044,31 @@ const hideBranchDropdown = () => {
 }
 
 const addTreatmentItem = () => {
-  formData.value.treatmentItems.push({
+  const newItem: any = {
     id: `temp-${Date.now()}`,
     procedure: '',
-    visitType: '',
+    visitType: '', // ✅ Tüm template'lerde var
     estimatedCost: 0,
     notes: '',
+  };
+
+  // ✅ SADECE istinye-blue için quantity ekle
+  if (formData.value.templateType === 'istinye-blue') {
+    newItem.quantity = 1; // Default quantity
+  }
+
+  formData.value.treatmentItems.push(newItem);
+};
+
+// ✅ Item total hesaplama (sadece istinye-blue için kullanılacak):
+const calculateItemTotal = (item: any): string => {
+  const unitPrice = parseEstimatedCost(item.estimatedCost);
+  const quantity = item.quantity || 1;
+  const total = unitPrice * quantity;
+  
+  return total.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 };
 

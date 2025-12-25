@@ -241,6 +241,17 @@
                   <span class="text-xs text-gray-600 dark:text-gray-300">{{ t('pool.actions.edit', 'Düzenle') }}</span>
                 </NuxtLink>
 
+                <NuxtLink v-if="isEditable" :to="`/customers/detail/${showStates.activeId}`"
+                  class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+                  <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <MagnifyingGlassIcon class="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <span class="text-xs text-gray-600 dark:text-gray-300">{{ t('customer.view_details', 'Detaylı Görünüm') }}</span>
+                </NuxtLink>
+
+                  
+
+
                 <button v-if="isDeleteable" @click="emitAction('confirm-delete')"
                   class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 transition-all">
                   <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
@@ -271,7 +282,8 @@ import {
   XMarkIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  PhoneIcon
+  PhoneIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/vue/24/outline'
 import { useLanguage } from '~/composables/useLanguage'
 
