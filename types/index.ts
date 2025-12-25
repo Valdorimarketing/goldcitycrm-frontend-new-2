@@ -1,7 +1,3 @@
-// Auth types
-
-// types/language.ts
-
 // types/language.ts
 export interface Language {
   id: number;
