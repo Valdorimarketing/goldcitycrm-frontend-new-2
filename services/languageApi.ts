@@ -7,7 +7,7 @@ import type { Language, TranslationsResponse, TranslationKey, BulkTranslationIte
 const getBaseURL = (): string => {
 
   // return 'http://localhost:3001';
-    return 'https://vcrmapi.mlpcare.com';
+    return 'https://api.goldcitycrm.com';
 };
  
 /**

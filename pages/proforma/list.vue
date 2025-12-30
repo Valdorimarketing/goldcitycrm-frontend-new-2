@@ -398,7 +398,7 @@ import {
 const authStore = useAuthStore()
 const proformaStore = useProformaStore();
 const { proformas, loading, error } = storeToRefs(proformaStore);
-const downloadPath = 'https://vcrmapi.mlpcare.com';
+const downloadPath = 'https://api.goldcitycrm.com';
 // const downloadPath = 'http://localhost:3001';
 
 const $api = useApi()
