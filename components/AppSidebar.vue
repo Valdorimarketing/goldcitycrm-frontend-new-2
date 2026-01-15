@@ -47,7 +47,7 @@
               :class="isRTL ? 'text-right' : 'text-left'"
             >
               <h1 class="text-lg font-bold text-white tracking-tight">Valdori</h1>
-              <p class="text-xs text-slate-400 -mt-0.5">CRM Platform</p>
+              <p class="text-xs text-slate-400 -mt-0.5">CRM Platform TR2</p>
             </div>
           </Transition>
         </div>
