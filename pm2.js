@@ -2,13 +2,13 @@ module.exports = {
   apps: [
 
     {
-      name: "crm-frontend-tr1",
+      name: "crm-frontend-tr2",
       script: "npm",
       args: "start",
 
       env: {
         NODE_ENV: "production",
-        NITRO_PORT: "3002",
+        NITRO_PORT: "3003",
       }
     },
   ],
