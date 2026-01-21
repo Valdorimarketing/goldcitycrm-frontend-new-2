@@ -220,7 +220,6 @@
                 <div class="flex gap-1">
                   <button
                     @click="showConvertToSaleModal = true"
-                    :disabled="isSaleStatus"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     <CurrencyDollarIcon class="h-4 w-4" />
